@@ -1,0 +1,74 @@
+{
+  "metrics": [
+    {
+      "metric": "heart_rate",
+      "unit": "bpm",
+      "min_green": 50, "max_green": 90,
+      "min_amber": 40, "max_amber": 100,
+      "source": "NASA HRP Risk of Cardiovascular Adaptations Contributing to Adverse Mission Performance and Health Outcomes",
+      "source_url": "https://humanresearchroadmap.nasa.gov/risks/"
+    },
+    {
+      "metric": "systolic_bp",
+      "unit": "mmHg",
+      "min_green": 90, "max_green": 125,
+      "min_amber": 85, "max_amber": 140,
+      "source": "NASA HRP Risk of Orthostatic Intolerance During Re-Exposure to Gravity",
+      "source_url": "https://humanresearchroadmap.nasa.gov/risks/"
+    },
+    {
+      "metric": "diastolic_bp",
+      "unit": "mmHg",
+      "min_green": 60, "max_green": 85,
+      "min_amber": 55, "max_amber": 90,
+      "source": "NASA HRP Risk of Orthostatic Intolerance During Re-Exposure to Gravity",
+      "source_url": "https://humanresearchroadmap.nasa.gov/risks/"
+    },
+    {
+      "metric": "glucose",
+      "unit": "mg/dL",
+      "min_green": 70, "max_green": 110,
+      "min_amber": 60, "max_amber": 140,
+      "source": "NASA HRP Risk of Reduced Crew Health and Performance Due to Inadequate Nutrition",
+      "source_url": "https://humanresearchroadmap.nasa.gov/risks/"
+    },
+    {
+      "metric": "body_temperature",
+      "unit": "°C",
+      "min_green": 36.1, "max_green": 37.5,
+      "min_amber": 35.5, "max_amber": 38.0,
+      "source": "NASA-STD-3001 Vol. 1, Crew Health (core body temperature)",
+      "source_url": "https://www.nasa.gov/ofc-health-and-medical-officer/nasa-space-flight-human-system-standards/"
+    },
+    {
+      "metric": "sleep_duration",
+      "unit": "h",
+      "min_green": 7, "max_green": 9.5,
+      "min_amber": 6, "max_amber": 11,
+      "source": "NASA HRP Risk of Performance Decrements and Adverse Health Outcomes Resulting from Sleep Loss, Circadian Desynchronization, and Work Overload",
+      "source_url": "https://humanresearchroadmap.nasa.gov/risks/"
+    },
+    {
+      "metric": "mood",
+      "unit": "/10",
+      "min_green": 6, "max_green": 10,
+      "min_amber": 4, "max_amber": 10,
+      "source": "NASA HRP Risk of Adverse Cognitive or Behavioral Conditions and Psychiatric Disorders",
+      "source_url": "https://humanresearchroadmap.nasa.gov/risks/"
+    }
+  ],
+  "readiness": {
+    "weights": {
+      "heart_rate": 0.15,
+      "blood_pressure": 0.15,
+      "glucose": 0.15,
+      "temperature": 0.1,
+      "sleep": 0.25,
+      "mood": 0.2
+    },
+    "status_subscore": { "green": 100, "amber": 65, "red": 30 },
+    "physiological_share": 0.85,
+    "min_green": 80,
+    "min_amber": 60
+  }
+}

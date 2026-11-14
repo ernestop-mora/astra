@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored Claude skills and local screenshot tooling
+    ".claude/**",
+    ".playwright-cli/**",
   ]),
 ]);
 
