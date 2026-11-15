@@ -204,7 +204,7 @@ export function sharingAnswer(ctx: AssistantContext): string {
 }
 
 export const helpAnswer = () => "Ask me about your readiness, a reading like sleep or glucose, or when a spare sensor arrives.";
-export const greetingAnswer = () => "Hello. I am your assistant. Ask me if you are ready for tomorrow.";
+export const greetingAnswer = () => "Hello. I am PURA. Ask me if you are ready for tomorrow.";
 export const capsuleAnswer = () => "Time capsule content stays on this device. I do not use it.";
 
 export function answerFor(match: Match, ctx: AssistantContext): string {

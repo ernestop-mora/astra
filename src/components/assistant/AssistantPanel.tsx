@@ -92,7 +92,7 @@ export function AssistantPanel() {
     <GlassPanel
       ref={panel}
       role="dialog"
-      aria-label="Assistant"
+      aria-label="PURA"
       tabIndex={-1}
       data-assistant-panel=""
       style={{ background: PANEL_BG }}
@@ -114,7 +114,7 @@ export function AssistantPanel() {
       className="fixed right-6 bottom-6 z-40 flex max-h-[calc(100dvh-11rem)] w-[380px] max-w-[calc(100vw-3rem)] flex-col p-4 outline-none small:max-h-[calc(100dvh-3rem)] small:overflow-y-auto"
     >
       <div className="flex items-center gap-1">
-        <h2 className="flex-1 text-md font-medium text-cream">Assistant</h2>
+        <h2 className="flex-1 text-md font-medium text-cream">PURA</h2>
         <IconButton icon={CircleHelp} label="Help" aria-expanded={help} onClick={() => setHelp((h) => !h)} />
         <IconButton
           icon={muted ? VolumeX : Volume2}
@@ -122,7 +122,7 @@ export function AssistantPanel() {
           aria-pressed={muted}
           onClick={toggleMute}
         />
-        <IconButton icon={X} label="Close assistant" onClick={close} />
+        <IconButton icon={X} label="Close PURA" onClick={close} />
       </div>
 
       <div className="flex flex-col items-center">

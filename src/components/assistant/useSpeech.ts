@@ -90,7 +90,8 @@ export function speak(text: string, handlers: SpeakHandlers): boolean {
   if (!canSpeak()) return false;
   const synth = window.speechSynthesis;
   synth.cancel();
-  const u = new SpeechSynthesisUtterance(text);
+  // "Pura" so voices say the name as a word instead of spelling it out.
+  const u = new SpeechSynthesisUtterance(text.replace(/\bPURA\b/g, "Pura"));
   const voice = pickVoice();
   if (voice) u.voice = voice;
   u.lang = voice?.lang ?? "en-US";
