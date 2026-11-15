@@ -21,11 +21,11 @@ export function EvaCountdown() {
   }, []);
 
   return (
-    <p className="text-lg text-cream">
+    <span className="text-cream">
       EVA in{" "}
-      <span className="font-mono tabular-nums">
+      <span className="font-mono tabular-nums text-coral">
         {remaining === null ? <span className="text-slate">--h --m</span> : format(remaining)}
       </span>
-    </p>
+    </span>
   );
 }

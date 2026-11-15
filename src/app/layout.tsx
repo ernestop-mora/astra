@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { DM_Mono, Space_Grotesk } from "next/font/google";
+import { MotionProvider } from "@/components/ds/MotionProvider";
+import { FaultFromUrl } from "@/components/FaultFromUrl";
+import { TopNav } from "@/components/TopNav";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -25,7 +28,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${spaceGrotesk.variable} ${dmMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <MotionProvider>
+          <TopNav />
+          <FaultFromUrl />
+          {children}
+        </MotionProvider>
+      </body>
     </html>
   );
 }

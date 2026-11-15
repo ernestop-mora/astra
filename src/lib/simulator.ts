@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { METRIC_IDS, type MetricId, type Readings } from "@/lib/triage";
 import { useAppStore } from "@/store/useAppStore";
-import { BASELINE } from "@/data/baseline";
+import { BASELINE, DEMO_TIMESTAMP } from "@/data/baseline";
 
 export const TICK_MS = 5000;
 
@@ -45,9 +45,13 @@ export function nextReadings(random: () => number = Math.random): Readings {
 export function useSimulator(): void {
   const setReadings = useAppStore((s) => s.setReadings);
   useEffect(() => {
-    // ?demo=1 freezes readings at the baseline, for recordings.
-    if (new URLSearchParams(window.location.search).get("demo") === "1") return;
-    const id = setInterval(() => setReadings(nextReadings()), TICK_MS);
+    // ?demo=1 freezes readings and their timestamp at the baseline, for recordings.
+    if (new URLSearchParams(window.location.search).get("demo") === "1") {
+      setReadings(BASELINE, DEMO_TIMESTAMP);
+      return;
+    }
+    setReadings(BASELINE, Date.now());
+    const id = setInterval(() => setReadings(nextReadings(), Date.now()), TICK_MS);
     return () => clearInterval(id);
   }, [setReadings]);
 }

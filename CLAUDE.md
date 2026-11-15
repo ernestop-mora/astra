@@ -5,74 +5,61 @@ Eres el principal ingeniero de este proyecto. Seguí estas reglas en cada respue
 
 ---
 
-## Reglas de diseño visual (aplican siempre)
+## Sistema de diseño — manda sobre cualquier skill
 
-- Sin emojis en ningún lado: ni en la UI, ni en el código, ni en tus respuestas
-- Sin look de plantilla genérica: nada de cards azules con bordes redondeados y un ícono a la izquierda, nada de headers con gradiente purple-to-pink, nada de hero sections con "Get Started Today"
-- Cada diseño tiene que justificarse desde el contenido: qué es, para quién, qué hace — eso dicta paleta, tipografía y layout
-- Espacio en blanco generoso, jerarquía tipográfica clara, nada de elementos decorativos que no aporten información
-- Antes de escribir cualquier componente de UI, revisar las reglas de diseño de este CLAUDE.md completo y aplicarlas sin excepción
+Un único sistema para todo el programa. Estas reglas mandan sobre cualquier skill y sustituyen a cualquier regla anterior que las contradiga.
 
-## Tipografía del proyecto
+**Generales**
+- Sin emojis en ningún lado: ni en la UI, ni en el código, ni en las respuestas
+- Riqueza visual con criterio: más gráfica, no más palabras. Cada elemento visual aporta información
+- Antes de escribir UI, releer esta sección y usar los componentes de `src/components/ds/`
 
-- **Display / headings:** `Space Grotesk` (Google Fonts) — weights 300 y 500
-- **Datos / valores numéricos:** `DM Mono` (Google Fonts) — para todos los números y valores de métricas
-- **Razón:** Space Grotesk tiene carácter técnico sin ser fría; DM Mono da precisión visual a los datos médicos
-- Nunca usar Inter, Roboto, o cualquier otra fuente por defecto
-- Cargar ambas fuentes en `layout.tsx` via `next/font/google`
+**Paleta completa, con papeles fijos** (tokens en `globals.css` bajo `:root`; nunca hex en JSX). Todos se ven en cada pantalla, cada uno en su papel:
+- `--navy #172A39`: escenario y fondo base
+- `--navy-2 #20384A` y `--navy-3 #2A4659`: capas de profundidad (superficies, tarjetas, paneles)
+- `--cream #E9E4E0`: texto principal y también superficies claras (tarjeta destacada con texto navy, bandas de contraste, el visor)
+- `--slate #6E7575`: texto secundario, líneas, divisores y elementos inactivos
+- `--cyan #62D4E6`: datos, interacción y señal (`--cyan-soft` .16, `--cyan-line` .32)
+- `--amber #E8A838`: estado de precaución
+- `--coral #FC563C`: alertas, elementos nuevos o sin ver, y UN único acento de énfasis por pantalla. Nunca como decoración repetida
+- Estado de métricas: en rango = cyan, precaución = amber, actúa ya = coral. No hay verde. El estado lleva también forma (punto fijo, anillo que pulsa, relleno) y texto en el panel
+- Catálogo con el papel y un ejemplo de cada color en `/ds`
 
-## Paleta de colores — tokens CSS obligatorios
+**Superficies y profundidad**
+- Capas navy, navy-2 y navy-3, con degradados muy sutiles entre ellas. Ningún degradado con colores ajenos a la paleta
+- Cristal: `--glass-bg rgba(23,42,57,.58)`, borde 1px `rgba(233,228,224,.14)`, blur 18px, brillo interior `inset 0 1px 0 rgba(233,228,224,.08)`
+- Radios: 14 paneles, 999 píldoras, 10 campos. Sombra suave solo en el panel lateral; nunca sombras fuertes
+- Detrás del cuerpo: un resplandor cian muy tenue y anillos orbitales finos en slate. Sin imágenes ni partículas
 
-Definir en `globals.css` bajo `:root`, con dark mode real bajo `@media (prefers-color-scheme: dark)` y clase `.dark`:
+**Gráfica**
+- Iconos de línea lucide-react, trazo 1.5, siempre coherentes
+- Mini gráficos: sparkline de 24 horas en cada BodyTag y en cada panel, con el rango sombreado
+- ScoreRing con marcas de graduación y arco segmentado
 
-```css
-:root {
-  --navy:         #172A39;
-  --navy-2:       #20384A;
-  --navy-3:       #2A4659;
-  --cream:        #E9E4E0;
-  --cream-2:      #DED9D4;
-  --cream-rule:   rgba(233,228,224,0.12);
-  --coral:        #FC563C;
-  --slate:        #6E7575;
+**Tipografía**
+- Space Grotesk (300 y 500) para texto; DM Mono para todos los números y valores
+- Jerarquía marcada: titulares grandes, cifras en DM Mono grandes, etiquetas pequeñas
+- Oraciones en minúscula normal (sentence case), sin mayúsculas sostenidas
+- Cargar ambas fuentes en `layout.tsx` vía `next/font/google`; nunca Inter, Roboto ni fuentes por defecto
 
-  /* Status — solo para métricas, nunca decorativo */
-  --status-green: #4CAF7D;
-  --status-amber: #E8A838;
-  --status-red:   #FC563C; /* mismo que coral */
+**Componentes** (`src/components/ds/`, sobre Base UI, animados con motion, respetan prefers-reduced-motion)
+GlassPanel, Button (píldora 40 px, uno primario por vista), ActionRow (anillo de marca de 250 ms, variante destacada en crema), Segmented (indicador deslizante), BodyTag (punto de estado, nombre, sparkline y valor), RangeBar, Sparkline, ScoreRing (cian desde 80, ámbar 60-79, coral debajo), StatusDot
 
-  /* Fondo y texto base */
-  --bg:           #172A39;
-  --fg:           #E9E4E0;
-  --fg-muted:     #6E7575;
-  --border:       rgba(233,228,224,0.12);
-  --card-bg:      #20384A;
-}
-```
-
-**Reglas de uso del color:**
-- `--coral` / `--status-red`: SOLO cuando hay alerta activa o acción requerida. Para nada más.
-- `--status-green`: solo métricas en rango normal
-- `--status-amber`: solo métricas en precaución
-- Fondo de toda la app: `--navy` (#172A39)
-- Texto principal: `--cream`
-- Texto secundario / labels: `--slate`
-- Cards: `--navy-2` sin sombra, border-radius máximo 8px
-- Sin gradientes decorativos. Sin glassmorphism. Sin box-shadow grandes.
+**Presupuesto de texto**: unas 70 palabras visibles en reposo en el Inicio. Nada de texto de ayuda en reposo. Rangos, explicaciones y fuentes van al panel que se abre al pulsar. Prohibido: más texto, sombras fuertes y efectos que distraigan.
 
 ## Arquitectura del proyecto
 
 ```
 src/
   app/
-    layout.tsx          ← fuentes + globals
+    layout.tsx          ← fuentes + globals + MotionConfig
     page.tsx            ← tab Inicio
+    capsule/page.tsx    ← tab Time capsule
+    ds/page.tsx         ← catálogo del sistema de diseño
   components/
-    ui/                 ← shadcn components
-    MetricCard.tsx
-    ScoreCircle.tsx
-    ActionButton.tsx
-    ConsentBanner.tsx
+    ds/                 ← sistema de diseño (Base UI + motion)
+    body/               ← cuerpo 3D, silueta SVG, anclas, tags, panel de zona
+    capsule/            ← galería y lightbox de la cápsula
   data/
     thresholds.json     ← umbrales NASA HRP con source_url
   lib/
@@ -98,27 +85,21 @@ El color de cada métrica lo calcula `triage.ts` — una función ASTRA que lee 
 }
 ```
 
-## Tab Inicio — especificación completa
+## Tab Inicio — especificación
 
 **Una sola pregunta que responde:** *"¿Voy a poder hacer mi trabajo mañana?"*
 
-Layout en dos columnas (desktop, `lg:grid-cols-[3fr_2fr]`):
+- Columna izquierda: cabecera (día de misión + cuenta atrás real), frase diagnóstica corta, ScoreRing, tres ActionRow (la de mayor impacto destacada en crema) que suman al score en vivo vía Zustand, Segmented de consentimiento ("Private" · "My doctor only" · "Open NASA data")
+- Columna derecha: cuerpo con BodyTag por métrica (nombre, sparkline y valor), anillos orbitales detrás
+- Panel lateral: detalle de zona (valor, estado en texto, sparkline, RangeBar, por qué importa, acciones, fuente) o paquete de datos que sale del dispositivo según el consentimiento
+- `?demo=1` fija cámara y lecturas; `?open=heart|abdomen|torso|head` abre una zona
 
-**Columna izquierda:**
-1. Header: "MISSION DAY 212" en `--slate` pequeño (Space Grotesk 300) + "EVA in 14h 23m" countdown real con JS
-2. Frase diagnóstica de una línea: "Your body is at 78% readiness for tomorrow's EVA."
-3. Score circular SVG (no librería) 0–100: número en `--cream` DM Mono, arco en color de estado
-4. Tres acciones concretas (botones) que al clickear suman al score en tiempo real via Zustand
+## Tab Time capsule — especificación
 
-**Columna derecha:**
-- 6 métricas: Heart Rate · Blood Pressure · Glucose · Temperature · Sleep · Mood
-- Cada card: nombre en `--slate`, valor en `--cream` grande DM Mono, unidad en `--slate` pequeño, barra de estado horizontal, frase de una línea explicando relevancia para el EVA
-- Sin íconos decorativos — solo los datos
-
-**Footer del tab:**
-- Banner de consentimiento de datos (compacto, no intrusivo)
-- Tres opciones radio: "Private" · "My doctor only" · "Open NASA data"
-- Estado en Zustand
+- Galería en cuadrícula de mosaicos de distinto tamaño, sin carpetas. Chips de filtro: All, Videos, Photos, Notes y uno por remitente si hay más de uno
+- Mosaico destacado: el más reciente sin ver, grande, superficie crema con texto navy y punto coral de "nuevo"
+- Lightbox con anterior/siguiente por teclado, Escape para cerrar, video con controles, sin reproducción automática y silenciado
+- Solo en el navegador (IndexedDB). Nunca entra en `src/lib/packet.ts` ni en el consentimiento (lo garantiza una regla de ESLint). Cero archivos multimedia en el repositorio; las entradas de `?demo=1` son solo metadatos
 
 ## Reglas de código
 
@@ -136,4 +117,4 @@ Layout en dos columnas (desktop, `lg:grid-cols-[3fr_2fr]`):
 - **5 peligros NASA HRP mapeados a 5 tabs:** Inicio (entorno cerrado) · Cápsula del tiempo (aislamiento) · Taller (distancia) · Cuerpo (gravedad) · Dosis (radiación)
 - **Submisión cierra:** Dom 15 nov 2026, 11:59 p.m. hora Costa Rica
 - **Deploy:** Vercel. Links públicos sin login.
-- **No hacer todavía:** otros tabs, voz, login, base de datos, Supabase
+- **No hacer todavía:** tabs además de Inicio y Time capsule, voz, login, base de datos, Supabase

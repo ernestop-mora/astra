@@ -1,128 +1,129 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-
-@custom-variant dark (&:is(.dark *));
 
 /* ------------------------------------------------------------------
-   ASTRA tokens. Colors live here only; JSX references them by name.
-   Status colors are reserved for metric state, never decoration.
+   ASTRA design system tokens. The single source of colour for the app;
+   JSX references them by name, never by hex. See CLAUDE.md.
    ------------------------------------------------------------------ */
 :root {
+  /* Base */
   --navy: #172a39;
   --navy-2: #20384a;
   --navy-3: #2a4659;
   --cream: #e9e4e0;
-  --cream-2: #ded9d4;
-  --cream-rule: rgba(233, 228, 224, 0.12);
-  --coral: #fc563c;
   --slate: #6e7575;
 
-  --status-green: #4caf7d;
-  --status-amber: #e8a838;
-  --status-red: #fc563c;
+  /* Signal */
+  --cyan: #62d4e6;
+  --cyan-soft: rgba(98, 212, 230, 0.16);
+  --cyan-line: rgba(98, 212, 230, 0.32);
 
-  --bg: #172a39;
-  --fg: #e9e4e0;
-  --fg-muted: #6e7575;
-  --border: rgba(233, 228, 224, 0.12);
-  --card-bg: #20384a;
+  /* State: in range = cyan, caution = amber, act now = coral. No green. */
+  --amber: #e8a838;
+  --coral: #fc563c;
+  --state-ok: var(--cyan);
+  --state-caution: var(--amber);
+  --state-act: var(--coral);
 
-  /* shadcn bridge: components/ui read these */
-  --background: var(--bg);
-  --foreground: var(--fg);
-  --card: var(--card-bg);
-  --card-foreground: var(--fg);
-  --popover: var(--navy-2);
-  --popover-foreground: var(--fg);
-  --primary: var(--cream);
-  --primary-foreground: var(--navy);
-  --secondary: var(--navy-3);
-  --secondary-foreground: var(--fg);
-  --muted: var(--navy-3);
-  --muted-foreground: var(--fg-muted);
-  --accent: var(--navy-3);
-  --accent-foreground: var(--fg);
-  --destructive: var(--coral);
-  --input: var(--border);
-  --ring: var(--slate);
-  --radius: 0.5rem;
-}
-
-/* Night cycle: deeper cabin-lighting variant of the same palette */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f1e2a;
-    --card-bg: #172a39;
-    --navy-3: #20384a;
-    --border: rgba(233, 228, 224, 0.1);
-  }
-}
-
-.dark {
-  --bg: #0f1e2a;
-  --card-bg: #172a39;
-  --navy-3: #20384a;
-  --border: rgba(233, 228, 224, 0.1);
+  /* Glass */
+  --glass-bg: rgba(23, 42, 57, 0.58);
+  --glass-border: rgba(233, 228, 224, 0.14);
+  --glass-blur: 18px;
+  --glass-highlight: inset 0 1px 0 rgba(233, 228, 224, 0.08);
+  /* The only shadow in the system: the side panel */
+  --panel-shadow: 0 24px 60px -20px rgba(8, 16, 23, 0.65);
 }
 
 @theme inline {
   --font-sans: var(--font-space-grotesk);
-  --font-heading: var(--font-space-grotesk);
   --font-mono: var(--font-dm-mono);
 
   --color-navy: var(--navy);
   --color-navy-2: var(--navy-2);
   --color-navy-3: var(--navy-3);
   --color-cream: var(--cream);
-  --color-cream-2: var(--cream-2);
-  --color-rule: var(--cream-rule);
-  --color-coral: var(--coral);
   --color-slate: var(--slate);
-  --color-status-green: var(--status-green);
-  --color-status-amber: var(--status-amber);
-  --color-status-red: var(--status-red);
-  --color-bg: var(--bg);
-  --color-fg: var(--fg);
-  --color-fg-muted: var(--fg-muted);
-  --color-card-bg: var(--card-bg);
+  --color-cyan: var(--cyan);
+  --color-cyan-soft: var(--cyan-soft);
+  --color-cyan-line: var(--cyan-line);
+  --color-amber: var(--amber);
+  --color-coral: var(--coral);
+  --color-glass: var(--glass-bg);
+  --color-rule: var(--glass-border);
 
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-
-  --radius-sm: calc(var(--radius) * 0.5);
-  --radius-md: calc(var(--radius) * 0.75);
-  --radius-lg: var(--radius);
-  --radius-xl: var(--radius);
+  --radius-panel: 14px;
+  --radius-pill: 999px;
+  --radius-field: 10px;
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
   html {
     @apply font-sans;
   }
   body {
-    background: var(--bg);
-    color: var(--fg);
+    /* Stage: navy, lifting very slightly toward navy-2 at the top */
+    background: linear-gradient(180deg, var(--navy-2) 0%, var(--navy) 420px) no-repeat var(--navy);
+    color: var(--cream);
     /* Only 300 and 500 are loaded; 400 would be synthesized as 500 */
     font-weight: 300;
+  }
+}
+
+/* Depth layers: navy-2 surface easing into navy-3, very subtle */
+@utility surface {
+  background: linear-gradient(160deg, var(--navy-3) 0%, var(--navy-2) 70%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-highlight);
+}
+
+/* Light surface: cream with navy text (featured card, viewer) */
+@utility surface-light {
+  background: linear-gradient(160deg, var(--cream) 0%, color-mix(in srgb, var(--cream) 90%, var(--navy-3)) 100%);
+  color: var(--navy);
+}
+
+@utility glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-highlight);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+/* Caution: a ring that pulses softly. Stops under reduced motion. */
+@keyframes ring-pulse {
+  0%,
+  100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(1.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* The single gradient in the system: a faint cyan glow behind the body (6%) */
+@utility body-glow {
+  background: radial-gradient(closest-side at 50% 52%, rgba(98, 212, 230, 0.06), transparent 80%);
+}
+
+/* Heart node: one subtle beat per cycle; duration is set from the live heart rate */
+@keyframes heart-beat {
+  0%,
+  45%,
+  100% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.03);
   }
 }

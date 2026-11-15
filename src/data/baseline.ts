@@ -10,3 +10,14 @@ export const BASELINE: Readings = {
   sleep_duration: 6.1,
   mood: 7,
 };
+
+/** Simulated crew identity. Attached to identified packets only. */
+export interface Crew {
+  name: string;
+  id: string;
+}
+
+export const CREW: Crew = { name: "A. Rivera", id: "ASTRA-CM-04" };
+
+/** Fixed reading time for ?demo=1, so recordings are identical. */
+export const DEMO_TIMESTAMP = Date.UTC(2026, 10, 14, 6, 0, 0);

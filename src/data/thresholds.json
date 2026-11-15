@@ -66,7 +66,7 @@
       "sleep": 0.25,
       "mood": 0.2
     },
-    "status_subscore": { "green": 100, "amber": 65, "red": 30 },
+    "status_subscore": { "ok": 100, "caution": 65, "act": 30 },
     "physiological_share": 0.85,
     "min_green": 80,
     "min_amber": 60

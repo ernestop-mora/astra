@@ -1,0 +1,45 @@
+{
+  "profiles": {
+    "iss": {
+      "destination": "ISS",
+      "flight": {
+        "typical_hours": 24,
+        "min_hours": 3,
+        "max_hours": 48,
+        "source_url": "https://www.space.com/spacex-dragon-crs-30-cargo-mission-iss-docking"
+      },
+      "next_departure": { "days": 42, "simulated": true },
+      "ground_reply": { "minutes": 1, "simulated": true },
+      "note": null
+    },
+    "moon": {
+      "destination": "Moon",
+      "flight": {
+        "typical_hours": 96,
+        "min_hours": 72,
+        "max_hours": 120,
+        "source_url": "https://www.goodmorningamerica.com/amp/news/story/artemis-ii-mission-timeline-10-day-journey-moon-131572035"
+      },
+      "next_departure": { "days": 21, "simulated": true },
+      "ground_reply": { "minutes": 5, "simulated": true },
+      "note": null
+    },
+    "mars": {
+      "destination": "Mars",
+      "flight": {
+        "typical_months": 7,
+        "min_months": 6,
+        "max_months": 9,
+        "source_url": "https://www.space.com/24701-how-long-does-it-take-to-get-to-mars.html",
+        "variation_source_url": "https://www.astronomy.com/space-exploration/why-does-the-travel-time-from-earth-to-mars-vary"
+      },
+      "launch_window_every_months": 26,
+      "next_departure": { "months": 4, "simulated": true },
+      "ground_reply": { "minutes": 45, "simulated": true },
+      "note": {
+        "text": "Spare parts cannot be flown in during transit. Plan around what is on board.",
+        "source_url": "https://ntrs.nasa.gov/api/citations/20160011578/downloads/20160011578.pdf"
+      }
+    }
+  }
+}

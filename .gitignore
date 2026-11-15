@@ -49,3 +49,9 @@ next-env.d.ts
 
 # Locally installed Claude skills
 .claude/skills/
+
+# Heavy source assets: never committed
+tools/raw/
+
+# Locally installed agent skills (npx skills add)
+.agents/
