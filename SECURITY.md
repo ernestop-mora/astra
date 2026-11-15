@@ -14,6 +14,7 @@ and it does not encrypt anything itself.
 | Crew identity (simulated name and crew ID) | `src/data/baseline.ts` | Memory only | No. Only a coded ID derived from it appears in a packet preview |
 | Time capsule files and notes | Added by the user | IndexedDB in this browser (`src/lib/capsule/repo.ts`) | No, under any consent level |
 | Assistant questions and answers | Typed or spoken by the user | Memory only (`src/store/useAssistantStore.ts`) | No. See "Voice input" below |
+| Mood check-in (Great, Good, Okay, Low, Very low) | Chosen by the user, or a phrase they typed or said | Memory only (`src/store/useMoodStore.ts`) | No, under any consent level |
 
 All health data is simulated. There is no account, no login, no backend, no
 database and no storage server. Nothing is transmitted: the Privacy panel shows
@@ -36,6 +37,7 @@ Built by `buildPacket` in `src/lib/packet.ts` and covered by
 | Sensor status | - | Yes | No |
 | Time capsule | never | never | never |
 | Assistant conversation | never | never | never |
+| Mood check-in | never | never | never |
 | Readiness score, actions | never | never | never |
 
 The coded ID is a pseudonym, not anonymity: whoever holds the table that maps
@@ -43,9 +45,11 @@ it to a person can identify them. In this mock-up it is a plain hash of the
 simulated crew ID. A real system would issue a random or keyed code from
 medical operations.
 
-Two ESLint rules (`eslint.config.mjs`) fail the build if `packet.ts`,
-`PacketContent.tsx` or `useAppStore.ts` import anything from the Time capsule
-or from the assistant.
+Three ESLint rules (`eslint.config.mjs`) fail the build if `packet.ts`,
+`PacketContent.tsx` or `useAppStore.ts` import anything from the Time capsule,
+the assistant or the mood check-in. `scripts/packet.test.mjs` also checks that
+no mood, capsule or chat field or text appears in a packet at any level, and
+that the packet is identical whatever mood was chosen.
 
 ## What is not stored
 
@@ -53,6 +57,7 @@ or from the assistant.
 - No health reading is put in a URL. Query parameters (`?demo=1`, `?open=`, `?fail=`, `?profile=`, `?section=`) select a view or a simulated fault; none carries a value.
 - The app writes nothing to the console and has no logging or error-reporting service.
 - Assistant conversations are not saved. They are gone when the tab closes or reloads.
+- The mood check-in is not saved either: no `localStorage`, no cookie. It is gone on reload.
 - Time capsule files stay in IndexedDB in this browser until the user deletes them. `?demo=1` entries are metadata only and are never written.
 
 A repository search for `localStorage`, `sessionStorage`, `document.cookie`,
@@ -96,6 +101,8 @@ curl -I http://localhost:3111/
 ```
 
 ## Honest limits of the mock-up
+
+- **Not a mental health service.** The low-mood view and the crisis card are a visual mock-up. Nothing detects mood: there is no voice, face or behaviour analysis. The app reacts only to the check-in the person chooses, or to fixed keywords in what they type or say (`src/lib/assistant/intents.ts`, English and Spanish). The crisis card's "Call crew surgeon" and "Message Mission control" are simulated and labelled so; nothing is called or sent. The low-mood view does not change the readiness score or any threshold. Its video and voice note are illustrations with sample captions and a transcript; there is no real media.
 
 - **Simulated data.** Every reading, the crew identity, the delivery estimate and the "report to mission control" are simulated. Nothing is medical advice.
 - **No storage server.** There is nowhere for a packet to go. The consent levels are implemented as what the packet contains, not as a transmission.

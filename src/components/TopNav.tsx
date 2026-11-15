@@ -2,7 +2,8 @@
 
 import { Archive, House, Wrench } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useDemo, withDemo } from "@/lib/useDemo";
 
 const TABS = [
@@ -14,7 +15,18 @@ const TABS = [
 /** Minimal top bar. Keeps ?demo=1 when moving between tabs. */
 export function TopNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const demo = useDemo();
+
+  // ?tab=capsule|workshop|home opens that tab and keeps the other parameters.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const tab = q.get("tab");
+    const href = tab === "capsule" ? "/capsule" : tab === "workshop" ? "/workshop" : tab === "home" ? "/" : null;
+    if (!href) return;
+    q.delete("tab");
+    if (href !== pathname) router.replace(`${href}?${q.toString()}`);
+  }, [pathname, router]);
   return (
     <header className="h-14 shrink-0 border-b border-rule">
       <div className="mx-auto flex h-full w-full max-w-[1600px] items-center gap-8 px-6 lg:px-12">

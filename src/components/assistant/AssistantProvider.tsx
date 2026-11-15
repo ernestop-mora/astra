@@ -3,12 +3,15 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { DEMO_TIMESTAMP } from "@/data/baseline";
 import { EVA_OFFSET_MS } from "@/data/home";
-import { answer, readinessAnswer, type AssistantContext } from "@/lib/assistant/answers";
+import { answerFor, MOOD_LOW, MOOD_NOTED, readinessAnswer, type AssistantContext } from "@/lib/assistant/answers";
+import { matchIntent } from "@/lib/assistant/intents";
 import { evaTarget } from "@/lib/evaClock";
 import { seeded } from "@/lib/history";
 import { isProfileId } from "@/lib/logistics";
+import { isLow, type MoodId } from "@/lib/mood";
 import { useAppStore } from "@/store/useAppStore";
 import { useAssistantStore, type AssistantState, type MouthShape } from "@/store/useAssistantStore";
+import { useMoodStore } from "@/store/useMoodStore";
 import { AssistantBubble } from "./AssistantBubble";
 import { cancelSpeech, canSpeak, listen, speak, watchVoices, type Listener } from "./useSpeech";
 
@@ -37,6 +40,8 @@ function pickMouth(r: number): MouthShape {
 
 export interface AssistantActions {
   ask: (text: string) => void;
+  /** Mood check-in from the selector. Low and Very low bring the offer of a message from home. */
+  checkIn: (mood: MoodId) => void;
   startListening: () => void;
   stopListening: () => void;
   toggleMute: () => void;
@@ -196,11 +201,29 @@ function createController(): AssistantActions & { init: () => () => void } {
       shownWords: 0,
       subtitleVisible: true,
       mouth: "closed",
+      card: "none",
+      checkinOpen: false,
     });
     // Consistent thinking time: the same question always takes the same 500 to 800 ms.
     later(() => {
-      if (id === run) respond(answer(text, context()), id);
+      if (id !== run) return;
+      const match = matchIntent(text);
+      // Only what the person typed or said: nothing is detected from voice or face.
+      if (match.intent === "mood_crisis") {
+        useMoodStore.getState().setCrisis(true);
+        set({ card: "crisis" });
+      } else if (match.intent === "mood_low") {
+        set({ card: "offer" });
+      }
+      respond(answerFor(match, context()), id);
     }, demo ? 600 : 500 + (hash(text) % 301));
+  }
+
+  function checkIn(mood: MoodId) {
+    stopAll();
+    useMoodStore.getState().setMood(mood);
+    set({ panelOpen: true, pinned: false, draft: "", checkinOpen: false, card: isLow(mood) ? "offer" : "none" });
+    respond(isLow(mood) ? MOOD_LOW : MOOD_NOTED, run);
   }
 
   function startListening() {
@@ -246,6 +269,8 @@ function createController(): AssistantActions & { init: () => () => void } {
       shownWords: 0,
       draft: "",
       voiceNotice: false,
+      checkinOpen: false,
+      card: useMoodStore.getState().crisis ? "crisis" : "none",
     });
   }
 
@@ -265,6 +290,21 @@ function createController(): AssistantActions & { init: () => () => void } {
       const question = SUGGESTIONS.find((s) => s.key === q.get("ask"));
       if (q.get("mute") === "1") set({ muted: true });
       if (q.get("assistant") === "open") set({ panelOpen: true });
+      if (q.get("checkin") === "1") set({ panelOpen: true, checkinOpen: true });
+
+      // ?mood=low|crisis|ok: the check-in, frozen for captures.
+      const mood = q.get("mood");
+      if (mood === "low") {
+        useMoodStore.getState().setMood("low", true);
+        if (get().panelOpen && !get().checkinOpen) {
+          set({ card: "offer", subtitle: MOOD_LOW, shownWords: MOOD_LOW.split(/\s+/).length });
+        }
+      } else if (mood === "crisis") {
+        useMoodStore.getState().setCrisis(true, true);
+        set({ card: "crisis" });
+      } else if (mood === "ok") {
+        useMoodStore.getState().setMood("okay", true);
+      }
 
       if ((state && STATES.includes(state)) || (mouth && SHAPES.includes(mouth))) {
         const pinnedState = state && STATES.includes(state) ? state : "speaking";
@@ -307,6 +347,7 @@ function createController(): AssistantActions & { init: () => () => void } {
   return {
     init,
     ask,
+    checkIn,
     startListening,
     stopListening: () => listener?.stop(),
     toggleMute: () => {

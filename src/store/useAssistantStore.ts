@@ -2,6 +2,8 @@ import { create } from "zustand";
 
 export type AssistantState = "idle" | "listening" | "thinking" | "speaking";
 export type MouthShape = "closed" | "small" | "wide" | "round";
+/** A card that takes the suggestions' place: the offer after a low-mood phrase, or the fixed support card. */
+export type AssistantCard = "none" | "offer" | "crisis";
 
 /**
  * Assistant UI state. Session memory only: nothing here is persisted, and no
@@ -27,6 +29,9 @@ interface AssistantStore {
   micDenied: boolean;
   /** ?state= or ?mouth= pins the visuals for captures. */
   pinned: boolean;
+  /** The mood check-in is open in place of the suggestions. */
+  checkinOpen: boolean;
+  card: AssistantCard;
   set: (patch: Partial<Omit<AssistantStore, "set">>) => void;
 }
 
@@ -43,5 +48,7 @@ export const useAssistantStore = create<AssistantStore>()((set) => ({
   voiceNotice: false,
   micDenied: false,
   pinned: false,
+  checkinOpen: false,
+  card: "none",
   set: (patch) => set(patch),
 }));

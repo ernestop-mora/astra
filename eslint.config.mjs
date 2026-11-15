@@ -35,6 +35,10 @@ const eslintConfig = defineConfig([
               group: ["**/assistant", "**/assistant/**", "**/useAssistantStore"],
               message: "Assistant conversations are never saved or sent: they cannot reach packets or consent.",
             },
+            {
+              group: ["**/mood", "**/mood/**", "**/useMoodStore"],
+              message: "The mood check-in stays on this device: it cannot reach packets or consent.",
+            },
           ],
         },
       ],

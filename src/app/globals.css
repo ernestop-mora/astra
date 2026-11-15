@@ -34,6 +34,10 @@
   --glass-border: rgba(233, 228, 224, 0.14);
   --glass-blur: 18px;
   --glass-highlight: inset 0 1px 0 rgba(233, 228, 224, 0.08);
+  /* Low-mood stage in the Time capsule: navy warmed by amber, lights kept low.
+     Text on it stays AA: cream 11:1, slate-text 6.3:1 at its warmest point. */
+  --mood-warm-top: color-mix(in srgb, var(--navy) 86%, var(--amber));
+  --mood-warm-bottom: color-mix(in srgb, var(--navy) 94%, var(--amber));
   /* The only shadow in the system: the side panel */
   --panel-shadow: 0 24px 60px -20px rgba(8, 16, 23, 0.65);
 }
@@ -168,6 +172,11 @@
 /* The single gradient in the system: a faint cyan glow behind the body (6%) */
 @utility body-glow {
   background: radial-gradient(closest-side at 50% 52%, rgba(98, 212, 230, 0.06), transparent 80%);
+}
+
+/* Low-mood stage: a warm wash over the whole page, no bright spots */
+@utility mood-warm {
+  background: linear-gradient(180deg, var(--mood-warm-top) 0%, var(--mood-warm-bottom) 100%);
 }
 
 /* Heart node: one subtle beat per cycle; duration is set from the live heart rate */

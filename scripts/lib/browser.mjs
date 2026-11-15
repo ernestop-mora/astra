@@ -44,6 +44,12 @@ export const STATES = [
   ...["type", "buttons", "switch", "rows", "tags", "data"].map((s) => ({ name: `ds, ${s}`, path: `/ds?demo=1&section=${s}` })),
   { name: "home, zone panel", path: "/?demo=1&open=heart", wait: "[role=dialog]" },
   { name: "home, privacy panel", path: "/?demo=1&open=privacy", wait: "[role=dialog]" },
+  { name: "capsule, mood low", path: "/?demo=1&tab=capsule&mood=low&mute=1", wait: "[data-low-mood]" },
+  { name: "capsule, mood crisis", path: "/capsule?demo=1&mood=crisis&mute=1", wait: "[data-crisis-card]" },
+  { name: "capsule, mood ok", path: "/capsule?demo=1&mood=ok&mute=1" },
+  { name: "capsule, mood check-in", path: "/capsule?demo=1&checkin=1&mute=1", wait: "[data-assistant-panel]" },
+  { name: "capsule, mood offer", path: "/capsule?demo=1&mood=low&assistant=open&mute=1", wait: "[data-mood-offer]" },
+  { name: "capsule, crisis in assistant", path: "/capsule?demo=1&mood=crisis&assistant=open&mute=1", wait: "[data-assistant-panel]" },
 ];
 
 export async function visit(page, state) {

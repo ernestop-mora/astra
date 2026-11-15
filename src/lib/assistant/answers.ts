@@ -45,6 +45,12 @@ export interface AssistantContext {
 
 export const SURGEON = "Confirm with your flight surgeon.";
 export const FALLBACK = "I can answer about your readiness, sensors, and spare delivery. Try one of the suggestions.";
+/** Low mood: warm, no diagnosis, an offer the person can decline. */
+export const MOOD_LOW = "That sounds heavy. I'm here. Want to open a message from home?";
+/** Crisis: one fixed line that points to people. Never a video, never advice. */
+export const MOOD_CRISIS = "You matter. Talk to the crew surgeon or Mission control now.";
+/** Any other check-in. */
+export const MOOD_NOTED = "Thanks for checking in. It stays on this device.";
 const NO_READINGS = "I have no live readings yet. Open Home to start them.";
 
 /** Units as spoken words, so the voice and the subtitle say the same thing. */
@@ -209,6 +215,10 @@ export const capsuleAnswer = () => "Time capsule content stays on this device. I
 
 export function answerFor(match: Match, ctx: AssistantContext): string {
   switch (match.intent) {
+    case "mood_crisis":
+      return MOOD_CRISIS;
+    case "mood_low":
+      return MOOD_LOW;
     case "capsule":
       return capsuleAnswer();
     case "readiness":

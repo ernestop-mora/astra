@@ -202,3 +202,53 @@ test("every answer is 25 words or fewer", () => {
     }
   }
 });
+
+test("low-mood phrases, English and Spanish, reach mood_low", () => {
+  const low = [
+    "I feel down",
+    "I'm sad",
+    "I miss home",
+    "I'm lonely",
+    "rough day",
+    "Had a bad day",
+    "Estoy triste",
+    "Extraño mi casa",
+    "Me siento sola",
+    "Fue un día difícil",
+  ];
+  for (const q of low) assert.equal(matchIntent(q).intent, "mood_low", q);
+  const text = A.answer("I feel down", ctx());
+  assert.equal(text, A.MOOD_LOW);
+  assert.ok(words(text) <= 25, text);
+  assert.ok(!/depress|anxi|diagnos|disorder/i.test(text), text);
+});
+
+test("crisis phrases outrank everything and never offer a video", () => {
+  const grave = [
+    "I can't go on",
+    "I cant go on anymore",
+    "I want to hurt myself",
+    "I'm sad and I can't go on",
+    "No puedo más",
+    "ya no puedo",
+    "quiero hacerme daño",
+    "my time capsule, I can't go on",
+  ];
+  for (const q of grave) assert.equal(matchIntent(q).intent, "mood_crisis", q);
+  const text = A.answer("I can't go on", ctx());
+  assert.equal(text, A.MOOD_CRISIS);
+  assert.ok(words(text) <= 25 && !/video|message from home/i.test(text), text);
+});
+
+test("mood answers never change the readiness answer", () => {
+  const before = A.readinessAnswer(ctx());
+  A.answer("I feel down", ctx());
+  A.answer("I can't go on", ctx());
+  assert.equal(A.readinessAnswer(ctx()), before);
+});
+
+test("ordinary questions are not read as mood", () => {
+  for (const q of ["Why is my score low?", "How is my mood?", "Can I do my job tomorrow?", "home"]) {
+    assert.ok(!["mood_low", "mood_crisis"].includes(matchIntent(q).intent), q);
+  }
+});

@@ -1,8 +1,14 @@
 "use client";
 
-import { CircleHelp, Mic, MicOff, Volume2, VolumeX, X, type LucideIcon } from "lucide-react";
+import { CircleHelp, Mic, MicOff, SmilePlus, Volume2, VolumeX, X, type LucideIcon } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button, GlassPanel } from "@/components/ds";
+import { CrisisCard } from "@/components/mood/CrisisCard";
+import { MoodSelector } from "@/components/mood/MoodSelector";
+import { isLow } from "@/lib/mood";
+import { useDemo, withDemo } from "@/lib/useDemo";
+import { useMoodStore } from "@/store/useMoodStore";
 import { useAssistantStore, type AssistantState } from "@/store/useAssistantStore";
 import { AssistantFace } from "./AssistantFace";
 import { SUGGESTIONS, useAssistant } from "./AssistantProvider";
@@ -79,7 +85,13 @@ export function AssistantPanel() {
   const voiceNotice = useAssistantStore((s) => s.voiceNotice);
   const micDenied = useAssistantStore((s) => s.micDenied);
   const setStore = useAssistantStore((s) => s.set);
-  const { ask, startListening, stopListening, toggleMute, close } = useAssistant();
+  const card = useAssistantStore((s) => s.card);
+  const checkinOpen = useAssistantStore((s) => s.checkinOpen);
+  const mood = useMoodStore((s) => s.mood);
+  const { ask, checkIn, startListening, stopListening, toggleMute, close } = useAssistant();
+  const router = useRouter();
+  const pathname = usePathname();
+  const demo = useDemo();
   const support = useSpeechSupport();
   const [help, setHelp] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
@@ -126,7 +138,7 @@ export function AssistantPanel() {
       </div>
 
       <div className="flex flex-col items-center">
-        <AssistantFace state={state} mouth={mouth} size={120} />
+        <AssistantFace state={state} mouth={mouth} size={card === "none" ? 120 : 72} />
         <p role="status" className="mt-1 text-xs text-mute">
           {STATE_TEXT[state]}
         </p>
@@ -203,9 +215,53 @@ export function AssistantPanel() {
         </Button>
       </form>
 
-      {/* Help takes the place of the suggestions, so the panel never grows past the screen. */}
-      {!help && (
+      {/* A card, the check-in or help takes the place of the suggestions, so the panel never grows past the screen. */}
+      {card === "crisis" && (
+        <div className="mt-3">
+          <CrisisCard compact />
+        </div>
+      )}
+
+      {card === "offer" && (
+        <div data-mood-offer="" className="mt-3 flex flex-wrap gap-2">
+          <Button
+            variant="quiet"
+            onClick={() => {
+              // Opening a message is the person's choice: it turns on the low-mood view.
+              if (!isLow(useMoodStore.getState().mood)) useMoodStore.getState().setMood("low");
+              setStore({ card: "none" });
+              if (pathname !== "/capsule") router.push(withDemo("/capsule", demo));
+              close();
+            }}
+          >
+            Open a message
+          </Button>
+          <Button variant="quiet" onClick={() => setStore({ card: "none" })}>
+            Not now
+          </Button>
+        </div>
+      )}
+
+      {card === "none" && checkinOpen && !help && (
+        <div className="mt-3">
+          <p className="mb-2 text-sm text-cream">How are you?</p>
+          <MoodSelector layout="grid" value={mood} onSelect={checkIn} />
+          <p className="mt-2 text-xs text-mute">Mood stays on this device.</p>
+        </div>
+      )}
+
+      {card === "none" && !checkinOpen && !help && (
         <ul aria-label="Suggested questions" className="mt-3 flex flex-wrap gap-2">
+          <li>
+            <button
+              type="button"
+              onClick={() => setStore({ checkinOpen: true })}
+              className="flex min-h-8 cursor-pointer items-center gap-1.5 rounded-pill border border-control px-3 text-xs text-cream transition-colors duration-150 hover:border-cyan hover:bg-cyan-soft"
+            >
+              <SmilePlus size={14} strokeWidth={1.5} aria-hidden="true" />
+              Check in
+            </button>
+          </li>
           {SUGGESTIONS.map((s) => (
             <li key={s.key}>
               <button
@@ -220,7 +276,7 @@ export function AssistantPanel() {
         </ul>
       )}
 
-      {help && (
+      {card === "none" && help && (
         <ul className="mt-3 flex flex-col gap-1 border-t border-rule pt-3 text-sm text-mute">
           <li>{VOICE_NOTICE}</li>
           <li>Conversations are not saved.</li>

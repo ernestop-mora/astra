@@ -3,12 +3,17 @@
 import { Check, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/capsule/ConfirmDialog";
+import { LowMoodView } from "@/components/capsule/LowMoodView";
 import { Lightbox } from "@/components/capsule/Lightbox";
 import { MessageGrid } from "@/components/capsule/MessageGrid";
 import { Button } from "@/components/ds";
+import { CrisisCard } from "@/components/mood/CrisisCard";
+import { MoodSelector } from "@/components/mood/MoodSelector";
 import type { CapsuleItem, ItemKind } from "@/lib/capsule/types";
 import { isDemoUrl, useDemo } from "@/lib/useDemo";
+import { isLow } from "@/lib/mood";
 import { useCapsuleStore } from "@/store/useCapsuleStore";
+import { useMoodStore } from "@/store/useMoodStore";
 
 const ACCEPT = "image/*,video/*,audio/*";
 type Filter = { by: "all" } | { by: "kind"; kind: ItemKind } | { by: "sender"; sender: string };
@@ -46,6 +51,9 @@ export default function CapsulePage() {
   const [dragging, setDragging] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  const { mood, crisis, frozen, setMood } = useMoodStore();
+  const low = isLow(mood) && !crisis;
+  const view = crisis ? "crisis" : low ? "low" : "normal";
 
   // Mode comes from the URL itself, not the hydration snapshot, so ?demo=1 never touches IndexedDB.
   useEffect(() => {
@@ -102,6 +110,17 @@ export default function CapsulePage() {
         void add(Array.from(e.dataTransfer.files));
       }}
     >
+      {/* Warmer, softer stage while the low-mood view is on; eases in over 450 ms. */}
+      <div
+        aria-hidden="true"
+        className={`mood-warm pointer-events-none fixed inset-0 -z-10 transition-opacity duration-[450ms] ease-out ${
+          view === "normal" ? "opacity-0" : "opacity-100"
+        }`}
+      />
+      <p aria-live="polite" className="sr-only">
+        {view === "low" ? "Low mood view. A message sealed for today is open." : view === "crisis" ? "Support card shown." : ""}
+      </p>
+
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-xl font-medium text-cream">Time capsule</h1>
@@ -117,10 +136,18 @@ export default function CapsulePage() {
             )}
           </p>
         </div>
-        <Button variant="primary" onClick={() => input.current?.click()}>
-          <Plus size={16} strokeWidth={1.5} aria-hidden="true" />
-          Add files
-        </Button>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm text-mute">How are you?</span>
+            <MoodSelector value={mood} onSelect={(m) => setMood(m)} />
+          </div>
+          {view === "normal" && (
+            <Button variant="primary" onClick={() => input.current?.click()}>
+              <Plus size={16} strokeWidth={1.5} aria-hidden="true" />
+              Add files
+            </Button>
+          )}
+        </div>
         <input
           ref={input}
           type="file"
@@ -134,6 +161,20 @@ export default function CapsulePage() {
         />
       </header>
 
+      {view === "crisis" && (
+        <section aria-label="Support" className="mt-6 grid flex-1 place-items-start justify-center pr-14 min-[1800px]:pr-0">
+          <CrisisCard />
+        </section>
+      )}
+
+      {view === "low" && (
+        <section aria-label="For a low day" className="mt-4 flex min-h-0 flex-1 flex-col pr-14 min-[1800px]:pr-0">
+          <LowMoodView frozen={frozen} onNotNow={() => setMood(null)} />
+        </section>
+      )}
+
+      {view === "normal" && (
+      <>
       <div role="group" aria-label="Filter" className="mt-4 flex flex-wrap items-center gap-2">
         <Chip active={same(filter, { by: "all" })} onClick={() => setFilter({ by: "all" })}>
           All
@@ -178,6 +219,8 @@ export default function CapsulePage() {
           <MessageGrid key={JSON.stringify(filter)} items={ordered} featured={featured} onOpen={(item) => open(ordered.indexOf(item))} />
         )}
       </section>
+      </>
+      )}
 
       <p className="pt-3 text-xs text-mute">
         Stored on this device only{demo ? " · demo entries, nothing is saved" : ""}

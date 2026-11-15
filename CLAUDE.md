@@ -105,6 +105,9 @@ El color de cada métrica lo calcula `triage.ts` — una función ASTRA que lee 
 - Galería en cuadrícula de mosaicos de distinto tamaño, sin carpetas. Chips de filtro: All, Videos, Photos, Notes y uno por remitente si hay más de uno
 - Mosaico destacado: el más reciente sin ver, grande, superficie crema con texto navy y punto coral de "nuevo"
 - Lightbox con anterior/siguiente por teclado, Escape para cerrar, video con controles, sin reproducción automática y silenciado
+- Estado de ánimo bajo (mock visual): selector de ánimo de cinco opciones con icono y palabra (Great, Good, Okay, Low, Very low) en la cabecera de Capsule y en el asistente ("Check in"). Low o Very low activa la vista de ánimo bajo: fondo cálido (`mood-warm`, 450 ms), la cápsula sellada "Open when you feel low" pasa al centro y se abre, y le siguen en cascada tres tarjetas (video ilustrado con subtítulos y reproducción simulada, nota de voz con transcripción, pausa de respiración 4 s / 6 s). "Not now" vuelve a la galería. Intents `mood_low` y `mood_crisis` del asistente (palabras clave fijas, inglés y español); `mood_crisis` muestra solo la tarjeta fija de apoyo con acciones simuladas, nunca video
+- El ánimo es presentación, no clínica: no cambia el readiness score, ni los umbrales, ni triage.ts. No se detecta nada por voz ni por rostro. Vive solo en memoria (`useMoodStore`) y nunca entra en `packet.ts` (regla de ESLint y tests en `scripts/packet.test.mjs`). Este mock no es un servicio de salud mental
+- Demo: `?demo=1&tab=capsule&mood=low|crisis|ok` (estado congelado, sin animación de entrada), `&checkin=1` abre el selector en el asistente, `&mute=1` sin voz
 - Solo en el navegador (IndexedDB). Nunca entra en `src/lib/packet.ts` ni en el consentimiento (lo garantiza una regla de ESLint). Cero archivos multimedia en el repositorio; las entradas de `?demo=1` son solo metadatos
 
 ## Reglas de código

@@ -7,6 +7,8 @@
 import type { CardId } from "@/lib/triage";
 
 export const INTENT_IDS = [
+  "mood_crisis",
+  "mood_low",
   "capsule",
   "readiness",
   "why_score",
@@ -31,8 +33,79 @@ type Keywords = readonly (readonly [phrase: string, weight: number])[];
 
 const MIN_SCORE = 1;
 
-/** Order matters: it breaks ties. The capsule always wins when it is named. */
+/** Phrases as people write them (accents, apostrophes), stored the way normalize() leaves them. */
+const say = (weight: number, phrases: readonly string[]): Keywords => phrases.map((p) => [normalize(p), weight] as const);
+
+/**
+ * Grave phrases, English and Spanish. They outrank every other intent and only
+ * ever lead to the fixed support card. This is keyword matching on what the
+ * person typed or said, not detection of any kind.
+ */
+const CRISIS = say(1000, [
+  "can't go on",
+  "cant go on",
+  "cannot go on",
+  "can not go on",
+  "hurt myself",
+  "harm myself",
+  "self harm",
+  "kill myself",
+  "end my life",
+  "end it all",
+  "want to die",
+  "don't want to live",
+  "no reason to live",
+  "suicide",
+  "suicidal",
+  "no puedo más",
+  "ya no puedo",
+  "hacerme daño",
+  "lastimarme",
+  "matarme",
+  "quitarme la vida",
+  "quiero morir",
+  "quiero morirme",
+  "no quiero vivir",
+  "suicidio",
+  "suicidarme",
+]);
+
+const LOW = say(10, [
+  "i feel down",
+  "feeling down",
+  "feel low",
+  "feeling low",
+  "i'm sad",
+  "i am sad",
+  "sad",
+  "i miss home",
+  "miss home",
+  "miss my family",
+  "homesick",
+  "i'm lonely",
+  "lonely",
+  "rough day",
+  "bad day",
+  "hard day",
+  "estoy triste",
+  "triste",
+  "me siento mal",
+  "me siento solo",
+  "me siento sola",
+  "extraño mi casa",
+  "extraño a mi familia",
+  "echo de menos",
+  "mal día",
+  "día difícil",
+  "día duro",
+  "desanimado",
+  "desanimada",
+]);
+
+/** Order matters: it breaks ties. A crisis phrase wins over everything; then the capsule when it is named. */
 const RULES: readonly { intent: Exclude<IntentId, "fallback">; keywords: Keywords }[] = [
+  { intent: "mood_crisis", keywords: CRISIS },
+  { intent: "mood_low", keywords: LOW },
   { intent: "capsule", keywords: [["capsule", 100], ["time capsule", 100]] },
   {
     intent: "readiness",
@@ -132,6 +205,8 @@ const CARD_WORDS: readonly (readonly [phrase: string, card: CardId])[] = [
 export function normalize(text: string): string {
   return text
     .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
