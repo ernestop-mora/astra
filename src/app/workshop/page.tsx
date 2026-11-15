@@ -11,7 +11,7 @@ import {
   Send,
   SlidersHorizontal,
 } from "lucide-react";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { DeliveryScene } from "@/components/workshop/DeliveryScene";
 import { useDelivery } from "@/components/workshop/useDelivery";
 import { ActionRow, Button, GlassPanel, Segmented, StatusDot } from "@/components/ds";
@@ -79,6 +79,9 @@ export default function WorkshopPage() {
   const [picked, setPicked] = useState<ProfileId | null>(null);
   const profile = picked ?? params.profile ?? "mars";
   const eta = etaFor(profile);
+  // The assistant answers about the profile on screen.
+  const setProfile = useAppStore((s) => s.setProfile);
+  useEffect(() => setProfile(profile), [profile, setProfile]);
   const delivery = useDelivery({
     flightStart: eta.waitDays / eta.totalDays,
     still: params.still || reduced,

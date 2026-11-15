@@ -31,6 +31,10 @@ const eslintConfig = defineConfig([
               group: ["**/capsule", "**/capsule/**", "**/useCapsuleStore"],
               message: "Time capsule content never leaves the device: it cannot reach packets or consent.",
             },
+            {
+              group: ["**/assistant", "**/assistant/**", "**/useAssistantStore"],
+              message: "Assistant conversations are never saved or sent: they cannot reach packets or consent.",
+            },
           ],
         },
       ],

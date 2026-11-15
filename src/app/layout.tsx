@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Mono, Space_Grotesk } from "next/font/google";
 import { MotionProvider } from "@/components/ds/MotionProvider";
+import { AssistantProvider } from "@/components/assistant/AssistantProvider";
 import { FaultFromUrl } from "@/components/FaultFromUrl";
 import { TopNav } from "@/components/TopNav";
 import "./globals.css";
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <TopNav />
           <FaultFromUrl />
           {children}
+          <AssistantProvider />
         </MotionProvider>
       </body>
     </html>

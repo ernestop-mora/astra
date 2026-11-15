@@ -157,7 +157,8 @@ export default function CapsulePage() {
         </p>
       )}
 
-      <section aria-label="Messages" className="mt-6 min-h-0 flex-1 overflow-y-auto pb-2">
+      {/* Below 1800 px the right gutter keeps tiles clear of the floating assistant. */}
+      <section aria-label="Messages" className="mt-6 min-h-0 flex-1 overflow-y-auto pr-14 pb-2 min-[1800px]:pr-0">
         {status === "error" ? (
           <p className="text-cream/80">This browser blocked local storage, so the capsule cannot open here.</p>
         ) : status === "ready" && items.length === 0 ? (

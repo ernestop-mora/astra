@@ -127,3 +127,84 @@
     transform: scale(1.03);
   }
 }
+
+/* ---------- Assistant face: one strong effect per state ---------- */
+.assistant-part {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* idle: the halo breathes slowly */
+@keyframes assistant-breathe {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+.assistant-breathe {
+  animation: assistant-breathe 4s ease-in-out infinite;
+}
+
+/* speaking: a livelier halo */
+@keyframes assistant-vivid {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+.assistant-vivid {
+  animation: assistant-vivid 1.1s ease-in-out infinite;
+}
+
+/* listening: a cyan ring that pulses outward */
+@keyframes assistant-ring {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.28);
+  }
+}
+.assistant-ring {
+  animation: assistant-ring 1.4s ease-out infinite;
+}
+
+/* listening: simulated five-bar equalizer */
+@keyframes assistant-eq {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.assistant-eq {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: assistant-eq 700ms ease-in-out infinite;
+}
+
+/* thinking: three dots that rise and fall */
+@keyframes assistant-dot {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.assistant-dot {
+  animation: assistant-dot 600ms ease-in-out infinite;
+}

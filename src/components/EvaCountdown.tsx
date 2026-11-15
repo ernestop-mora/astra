@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { EVA_OFFSET_MS } from "@/data/home";
+import { evaTarget } from "@/lib/evaClock";
 
 /** Whole minutes, rounded up, so a fresh load reads exactly the configured offset. */
 function format(ms: number): string {
@@ -13,7 +13,7 @@ export function EvaCountdown() {
   const [remaining, setRemaining] = useState<number | null>(null);
 
   useEffect(() => {
-    const target = Date.now() + EVA_OFFSET_MS;
+    const target = evaTarget();
     const tick = () => setRemaining(target - Date.now());
     tick();
     const id = setInterval(tick, 1000);

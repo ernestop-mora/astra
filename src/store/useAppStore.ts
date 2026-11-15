@@ -4,6 +4,7 @@ import type { Readings } from "@/lib/triage";
 import { BASELINE, CREW, type Crew } from "@/data/baseline";
 import type { AnchorId } from "@/components/body/anchors";
 import type { SensorId } from "@/data/sensors";
+import type { ProfileId } from "@/lib/logistics";
 
 /** A sensor with no signal: since when, and what everything read at that moment. */
 export interface SensorFault {
@@ -26,6 +27,9 @@ interface AppState {
   consent: Consent;
   panel: Panel;
   sensorFault: SensorFault | null;
+  /** Active resupply profile in Workshop. */
+  profile: ProfileId;
+  setProfile: (profile: ProfileId) => void;
   setReadings: (readings: Readings, at: number) => void;
   toggleAction: (id: ActionId) => void;
   setConsent: (consent: Consent) => void;
@@ -43,6 +47,8 @@ export const useAppStore = create<AppState>()((set) => ({
   consent: "private",
   panel: null,
   sensorFault: null,
+  profile: "mars",
+  setProfile: (profile) => set({ profile }),
   setReadings: (readings, at) => set({ readings, readingsAt: at }),
   toggleAction: (id) =>
     set((s) => ({
