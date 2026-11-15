@@ -22,7 +22,8 @@ Un único sistema para todo el programa. Estas reglas mandan sobre cualquier ski
 - `--cyan #62D4E6`: datos, interacción y señal (`--cyan-soft` .16, `--cyan-line` .32)
 - `--amber #E8A838`: estado de precaución
 - `--coral #FC563C`: alertas, elementos nuevos o sin ver, y UN único acento de énfasis por pantalla. Nunca como decoración repetida
-- Estado de métricas: en rango = cyan, precaución = amber, actúa ya = coral. No hay verde. El estado lleva también forma (punto fijo, anillo que pulsa, relleno) y texto en el panel
+- Estado de métricas: en rango = cyan, precaución = amber, actúa ya = coral, sin señal = slate. No hay verde. El estado nunca va solo por color: lleva icono propio (check, triángulo, octágono, sin señal) y palabra ("In range", "Caution", "Act now", "No signal")
+- Contraste WCAG 2.2 AA: el texto secundario usa `--slate-text #B8B8B5` (slate aclarado, 5.0:1 sobre navy-3); `--slate` queda para líneas e inactivos. Los bordes de controles usan `--control-border` (crema al 50 %, 3.2:1)
 - Catálogo con el papel y un ejemplo de cada color en `/ds`
 
 **Superficies y profundidad**
@@ -37,13 +38,18 @@ Un único sistema para todo el programa. Estas reglas mandan sobre cualquier ski
 - ScoreRing con marcas de graduación y arco segmentado
 
 **Tipografía**
-- Space Grotesk (300 y 500) para texto; DM Mono para todos los números y valores
-- Jerarquía marcada: titulares grandes, cifras en DM Mono grandes, etiquetas pequeñas
+- Space Grotesk (400, 500 y 600) para texto; DM Mono (400 y 500) para todos los números y valores. Ningún otro peso
+- Una sola escala en rem (tokens en `globals.css`, la de Tailwind está anulada): `--text-xs` 0.75 (solo etiquetas cortas y metadatos), `--text-sm` 0.875, `--text-md` 1 (cuerpo), `--text-lg` 1.25, `--text-xl` 1.75, `--text-figure` 3 (cifras grandes en DM Mono). Interlineado 1.5 en lectura y 1.2 en titulares. `npm run audit:type` debe dar cero fuera de escala
 - Oraciones en minúscula normal (sentence case), sin mayúsculas sostenidas
 - Cargar ambas fuentes en `layout.tsx` vía `next/font/google`; nunca Inter, Roboto ni fuentes por defecto
 
 **Componentes** (`src/components/ds/`, sobre Base UI, animados con motion, respetan prefers-reduced-motion)
-GlassPanel, Button (píldora 40 px, uno primario por vista), ActionRow (anillo de marca de 250 ms, variante destacada en crema), Segmented (indicador deslizante), BodyTag (punto de estado, nombre, sparkline y valor), RangeBar, Sparkline, ScoreRing (cian desde 80, ámbar 60-79, coral debajo), StatusDot
+GlassPanel, Button (píldora 40 px; el primario es la píldora rellena en cian, uno por vista; el resto "quiet"), ActionRow (anillo de marca de 250 ms, variante destacada en crema), Segmented (indicador deslizante), BodyTag (icono de estado, nombre, sparkline y valor; aria-label completo), RangeBar, Sparkline, ScoreRing (cian desde 80, ámbar 60-79, coral debajo), StatusDot y StatusBadge (icono y palabra)
+
+**Accesibilidad y layout** (WCAG 2.2 AA; lo comprueban `npm run audit:a11y` y `npm run audit:layout`)
+- Una pantalla sin scroll desde 1280x720 (variante `fit:`); por debajo, con zoom 200 % o texto ampliado, la página hace scroll (variante `small:`) y nada se corta. Sin `overflow:auto` internos en el layout de una pantalla
+- Foco siempre visible: anillo cian de 2 px (navy sobre crema). Objetivos de 24 px como mínimo. Un h1 por ruta, enlace "Skip to content", `role="alert"` solo para el fallo de sensor
+- Todo movimiento se detiene con prefers-reduced-motion
 
 **Presupuesto de texto**: unas 70 palabras visibles en reposo en el Inicio. Nada de texto de ayuda en reposo. Rangos, explicaciones y fuentes van al panel que se abre al pulsar. Prohibido: más texto, sombras fuertes y efectos que distraigan.
 
@@ -117,4 +123,5 @@ El color de cada métrica lo calcula `triage.ts` — una función ASTRA que lee 
 - **5 peligros NASA HRP mapeados a 5 tabs:** Inicio (entorno cerrado) · Cápsula del tiempo (aislamiento) · Taller (distancia) · Cuerpo (gravedad) · Dosis (radiación)
 - **Submisión cierra:** Dom 15 nov 2026, 11:59 p.m. hora Costa Rica
 - **Deploy:** Vercel. Links públicos sin login.
-- **No hacer todavía:** tabs además de Inicio y Time capsule, voz, login, base de datos, Supabase
+- **No hacer todavía:** tabs Cuerpo y Dosis, login, base de datos, Supabase
+- **Privacidad:** ver `SECURITY.md`. `src/lib/packet.ts` documenta qué campos salen en cada nivel de consentimiento; cabeceras de seguridad en `next.config.ts`

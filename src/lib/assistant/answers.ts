@@ -39,7 +39,7 @@ export interface AssistantContext {
   profile: ProfileId;
   /** "Now" for sensor ages, epoch ms */
   now: number;
-  /** Time left to the EVA; null when unknown */
+  /** Time left to the spacewalk (EVA); null when unknown */
   evaRemainingMs: number | null;
 }
 
@@ -64,9 +64,9 @@ const STATUS_PHRASE: Record<Reading, string> = {
 };
 
 const VERDICT: Record<Reading, string> = {
-  ok: "Tomorrow's EVA looks good.",
-  caution: "Tomorrow's EVA is possible, with care.",
-  act: "Tomorrow's EVA is at risk.",
+  ok: "Tomorrow's spacewalk looks good.",
+  caution: "Tomorrow's spacewalk is possible, with care.",
+  act: "Tomorrow's spacewalk is at risk.",
 };
 
 const CONSENT_LINE: Record<Consent, string> = {
@@ -128,7 +128,7 @@ export function worstCard(readings: Readings, offline: readonly CardId[]): { id:
 }
 
 function evaLine(ctx: AssistantContext): string {
-  return ctx.evaRemainingMs === null ? "" : ` EVA starts in ${durationWords(ctx.evaRemainingMs)}.`;
+  return ctx.evaRemainingMs === null ? "" : ` Spacewalk starts in ${durationWords(ctx.evaRemainingMs)}.`;
 }
 
 export function readinessAnswer(ctx: AssistantContext): string {

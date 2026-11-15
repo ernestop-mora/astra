@@ -1,10 +1,10 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/capsule/ConfirmDialog";
 import { Lightbox } from "@/components/capsule/Lightbox";
-import { Tile } from "@/components/capsule/Tile";
+import { MessageGrid } from "@/components/capsule/MessageGrid";
 import { Button } from "@/components/ds";
 import type { CapsuleItem, ItemKind } from "@/lib/capsule/types";
 import { isDemoUrl, useDemo } from "@/lib/useDemo";
@@ -26,8 +26,10 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className="flex h-9 items-center rounded-pill border border-rule px-4 text-sm text-slate outline-none transition-colors duration-150 hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-cyan aria-pressed:border-cyan-line aria-pressed:bg-cyan-soft aria-pressed:text-cream"
+      className="flex h-9 cursor-pointer items-center gap-1.5 rounded-pill border border-control px-4 text-sm whitespace-nowrap text-mute transition-colors duration-150 hover:text-cream aria-pressed:border-cyan aria-pressed:bg-cyan-soft aria-pressed:font-medium aria-pressed:text-cream"
     >
+      {/* The active filter is marked by a tick, not by colour alone. */}
+      {active && <Check size={14} strokeWidth={2} aria-hidden="true" className="text-cyan" />}
       {children}
     </button>
   );
@@ -84,7 +86,9 @@ export default function CapsulePage() {
   return (
     <main
       data-dragging={dragging || undefined}
-      className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-6 py-8 lg:h-[calc(100dvh-3.5rem)] lg:min-h-0 lg:flex-none lg:px-12 data-[dragging]:outline-2 data-[dragging]:-outline-offset-8 data-[dragging]:outline-cyan-line data-[dragging]:outline-dashed"
+      id="main"
+      tabIndex={-1}
+      className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-col px-6 pt-6 pb-28 outline-none fit:px-12 fit:py-5 data-[dragging]:outline-2 data-[dragging]:-outline-offset-8 data-[dragging]:outline-cyan-line data-[dragging]:outline-dashed"
       onDragOver={(e) => {
         e.preventDefault();
         setDragging(true);
@@ -98,10 +102,10 @@ export default function CapsulePage() {
         void add(Array.from(e.dataTransfer.files));
       }}
     >
-      <header className="flex flex-wrap items-end justify-between gap-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-5xl font-light text-cream">Time capsule</h1>
-          <p className="mt-3 flex items-center gap-3 text-sm text-slate">
+          <h1 className="text-xl font-medium text-cream">Time capsule</h1>
+          <p className="mt-1 flex items-center gap-3 text-sm text-mute">
             <span>
               <span className="font-mono text-cream">{items.length}</span> messages
             </span>
@@ -130,7 +134,7 @@ export default function CapsulePage() {
         />
       </header>
 
-      <div role="group" aria-label="Filter" className="mt-8 flex flex-wrap items-center gap-2">
+      <div role="group" aria-label="Filter" className="mt-4 flex flex-wrap items-center gap-2">
         <Chip active={same(filter, { by: "all" })} onClick={() => setFilter({ by: "all" })}>
           All
         </Chip>
@@ -141,7 +145,7 @@ export default function CapsulePage() {
         ))}
         {senders.length > 1 && (
           <>
-            <span aria-hidden="true" className="mx-2 h-5 w-px bg-slate/40" />
+            <span aria-hidden="true" className="mx-2 h-5 w-px bg-slate" />
             {senders.map((s) => (
               <Chip key={s} active={same(filter, { by: "sender", sender: s })} onClick={() => setFilter({ by: "sender", sender: s })}>
                 {s}
@@ -152,34 +156,30 @@ export default function CapsulePage() {
       </div>
 
       {notice && (
-        <p className="mt-4 text-sm text-amber" role="status">
+        <p className="mt-3 text-sm text-cream" role="status">
           {notice}
         </p>
       )}
 
       {/* Below 1800 px the right gutter keeps tiles clear of the floating assistant. */}
-      <section aria-label="Messages" className="mt-6 min-h-0 flex-1 overflow-y-auto pr-14 pb-2 min-[1800px]:pr-0">
+      <section aria-label="Messages" className="mt-4 flex min-h-0 flex-1 flex-col pr-14 min-[1800px]:pr-0">
         {status === "error" ? (
-          <p className="text-cream/80">This browser blocked local storage, so the capsule cannot open here.</p>
+          <p className="text-mute">This browser blocked local storage, so the capsule cannot open here.</p>
         ) : status === "ready" && items.length === 0 ? (
-          <div className="grid h-full place-items-center">
+          <div className="grid flex-1 place-items-center">
             <div className="flex flex-col items-center gap-4">
-              <p className="text-cream/80">Nothing here yet.</p>
-              <Button variant="primary" onClick={() => input.current?.click()}>
+              <p className="text-mute">Nothing here yet.</p>
+              <Button variant="quiet" onClick={() => input.current?.click()}>
                 Add files
               </Button>
             </div>
           </div>
         ) : (
-          <ul className="grid auto-rows-[168px] grid-cols-1 gap-4 [grid-auto-flow:dense] sm:grid-cols-4 xl:grid-cols-6">
-            {ordered.map((item, i) => (
-              <Tile key={item.id} item={item} featured={item === featured} onOpen={() => open(i)} />
-            ))}
-          </ul>
+          <MessageGrid key={JSON.stringify(filter)} items={ordered} featured={featured} onOpen={(item) => open(ordered.indexOf(item))} />
         )}
       </section>
 
-      <p className="pt-4 text-xs text-slate">
+      <p className="pt-3 text-xs text-mute">
         Stored on this device only{demo ? " · demo entries, nothing is saved" : ""}
       </p>
 

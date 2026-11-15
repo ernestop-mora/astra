@@ -1,4 +1,4 @@
-// Unit tests for the assistant's intents and answers. Run: npm run test:assistant
+// Unit tests for the assistant's intents and answers. Run: npm test
 import assert from "node:assert/strict";
 import { register } from "node:module";
 import { test } from "node:test";
@@ -30,6 +30,7 @@ test("one question per intent", () => {
   const cases = [
     ["Can I do my job tomorrow?", "readiness"],
     ["Am I ready for the EVA?", "readiness"],
+    ["Am I ready for the spacewalk?", "readiness"],
     ["Why is my score low?", "why_score"],
     ["What is lowering my readiness?", "why_score"],
     ["How is my glucose?", "metric_status"],
@@ -156,7 +157,7 @@ test("missing data is said, never invented", () => {
     assert.ok(!/\d/.test(text) && /no .*reading/i.test(text), text);
   }
   const noEva = A.readinessAnswer(ctx({ evaRemainingMs: null }));
-  assert.ok(!noEva.includes("EVA starts"), noEva);
+  assert.ok(!noEva.includes("Spacewalk starts"), noEva);
 });
 
 test("every answer is 25 words or fewer", () => {

@@ -10,7 +10,7 @@ interface ActionRowProps {
   label: string;
   /** Readiness points; omitted for plain checklist steps */
   points?: number;
-  /** sm: compact 44 px row for checklists */
+  /** sm: compact 36 px row for checklists and panels */
   size?: "md" | "sm";
   done: boolean;
   onDoneChange: (done: boolean) => void;
@@ -42,14 +42,14 @@ export function ActionRow({
       onPressedChange={(pressed) => onDoneChange(pressed)}
       disabled={disabled}
       data-force={force}
-      className={`flex ${size === "sm" ? "h-11 text-sm" : "h-14"} w-full items-center gap-4 rounded-field px-4 text-left outline-none transition-[background-color,border-color,transform] duration-150 select-none
-        ${featured ? "surface-light" : "surface text-cream hover:border-cyan/40 data-[force=hover]:border-cyan/40 data-[pressed]:border-cyan-line"}
-        focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-cyan data-[force=focus]:outline-2 data-[force=focus]:outline-solid data-[force=focus]:outline-offset-2 data-[force=focus]:outline-cyan
+      className={`flex ${size === "sm" ? "min-h-9 gap-3 py-1 text-sm" : "min-h-12 gap-4 py-2"} w-full cursor-pointer items-center rounded-field px-4 text-left transition-[background-color,border-color,transform] duration-150 select-none
+        ${featured ? "surface-light font-medium focus-visible:outline-cyan" : "surface text-cream [--surface-border:var(--control-border)] hover:border-cyan data-[force=hover]:border-cyan data-[pressed]:border-cyan"}
+        data-[force=focus]:outline-2 data-[force=focus]:outline-solid data-[force=focus]:outline-offset-2 data-[force=focus]:outline-cyan
         active:scale-[.98] data-[force=pressed]:scale-[.98]
         data-[disabled]:cursor-not-allowed data-[disabled]:opacity-40 data-[disabled]:active:scale-100 ${className}`}
     >
       <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" className="shrink-0 -rotate-90">
-        <circle cx="10" cy="10" r="8" fill="none" stroke={featured ? "var(--navy)" : "var(--slate)"} strokeOpacity={0.45} strokeWidth="1.5" />
+        <circle cx="10" cy="10" r="8" fill="none" stroke={featured ? "var(--navy)" : "var(--cream)"} strokeOpacity={featured ? 0.7 : 0.5} strokeWidth="1.5" />
         <motion.circle
           cx="10"
           cy="10"
@@ -77,13 +77,13 @@ export function ActionRow({
           size={18}
           strokeWidth={1.5}
           aria-hidden="true"
-          className={`shrink-0 ${featured ? "text-navy/70" : "text-cyan"}`}
+          className={`shrink-0 ${featured ? "text-navy" : "text-cyan"}`}
         />
       )}
-      <span className={`flex-1 ${done ? "opacity-60" : ""}`}>{label}</span>
+      <span className="flex-1">{label}</span>
       {points !== undefined && (
         <span
-          className={`font-mono text-lg tabular-nums ${featured ? "text-navy" : done ? "text-cyan" : "text-slate"}`}
+          className={`font-mono text-md tabular-nums ${featured ? "text-navy" : done ? "text-cyan" : "text-mute"}`}
         >
           +{points}
         </span>

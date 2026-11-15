@@ -180,7 +180,7 @@ export const STATUS_COLOR: Record<Status, string> = {
   ok: "var(--state-ok)",
   caution: "var(--state-caution)",
   act: "var(--state-act)",
-  offline: "var(--slate)",
+  offline: "var(--slate-text)",
 };
 
 export const STATUS_LABEL: Record<Status, string> = {

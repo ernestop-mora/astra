@@ -3,12 +3,19 @@
 import { useEffect, useRef } from "react";
 import { BodyTag, StatusDot } from "@/components/ds";
 import type { CardCopy } from "@/data/home";
-import { STATUS_COLOR, STATUS_RANK, triageCard, type CardId, type Readings, type Status } from "@/lib/triage";
+import { STATUS_COLOR, STATUS_LABEL, STATUS_RANK, triageCard, type CardId, type Readings, type Status } from "@/lib/triage";
 import type { SensorFault } from "@/store/useAppStore";
 import { ANCHOR_IDS, ANCHORS, type AnchorBus, type AnchorId } from "./anchors";
 import { cardView } from "./cardView";
+import { pxPerUnit } from "./geometry";
+import { BODY_HALF_WIDTH } from "./model.generated";
 
-export const TAG_W = 268;
+/**
+ * Tags take the room between the stage edge and the hands (the body is 0.372 of
+ * the stage height per unit and its hands reach 0.521 units out), up to 268 px.
+ */
+const tagWidth = (stageWidth: number, stageHeight: number) =>
+  Math.round(Math.max(176, Math.min(268, stageWidth / 2 - BODY_HALF_WIDTH * pxPerUnit(stageHeight) - 16)));
 const GAP = 10;
 
 /** 0 when the zone faces away from the camera, 1 when it faces it. */
@@ -51,6 +58,8 @@ export function TagLayer({ width, height, bus, cards, readings, fault, now, focu
   const tags = useRef<Partial<Record<CardId, HTMLButtonElement | null>>>({});
   const nodes = useRef<Partial<Record<AnchorId, HTMLButtonElement | null>>>({});
 
+  const TAG_W = tagWidth(width, height);
+
   useEffect(() => {
     if (width === 0 || height === 0) return;
     // With a panel open, tags and lines step back; only the open zone's node stays.
@@ -83,7 +92,7 @@ export function TagLayer({ width, height, bus, cards, readings, fault, now, focu
         node.style.pointerEvents = vis > 0.3 ? "auto" : "none";
       }
     });
-  }, [bus, cards, readings, width, height, focus, panelOpen]);
+  }, [bus, cards, readings, width, height, focus, panelOpen, TAG_W]);
 
   if (width === 0 || height === 0) return null;
 
@@ -120,9 +129,10 @@ export function TagLayer({ width, height, bus, cards, readings, fault, now, focu
             type="button"
             data-panel-trigger
             onClick={() => onOpen(id)}
-            aria-label={`${ANCHORS[id].label} zone`}
+            aria-label={`${ANCHORS[id].label} zone, ${STATUS_LABEL[status].toLowerCase()}`}
             aria-expanded={focus === id}
-            className={`absolute top-0 left-0 grid size-6 place-items-center rounded-full outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-cyan ${
+            tabIndex={panelOpen && focus !== id ? -1 : 0}
+            className={`absolute top-0 left-0 grid size-6 cursor-pointer place-items-center rounded-full ${
               drawNodes ? "before:absolute before:size-4 before:rounded-full before:bg-navy/85 before:content-['']" : ""
             }`}
             style={{ opacity: 0 }}
@@ -154,9 +164,11 @@ export function TagLayer({ width, height, bus, cards, readings, fault, now, focu
             data-panel-trigger
             onClick={() => onOpen(c.anchor)}
             aria-expanded={focus === c.anchor}
+            tabIndex={panelOpen ? -1 : 0}
             status={view.status}
             name={c.name}
             value={view.value}
+            unit={c.unit}
             history={view.history}
             aside={view.lastSeen ? view.lastSeen.replace("last reading ", "") : undefined}
             active={focus === c.anchor}

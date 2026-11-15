@@ -20,7 +20,7 @@ export interface CardCopy {
   v: number;
   measures: string;
   space: string;
-  /** Why it matters for tomorrow's EVA */
+  /** Why it matters for tomorrow's spacewalk (EVA) */
   eva: string;
 }
 
@@ -36,7 +36,7 @@ export const CARDS: readonly CardCopy[] = [
     v: 0.25,
     measures: "Resting beats per minute.",
     space: "Fluid shifts toward the head and the heart deconditions over months in orbit.",
-    eva: "Cardiac reserve for six hours of suited work.",
+    eva: "Heart strength for six hours of work in the suit.",
   },
   {
     id: "blood_pressure",
@@ -49,7 +49,7 @@ export const CARDS: readonly CardCopy[] = [
     v: 0.36,
     measures: "Arterial pressure, systolic over diastolic.",
     space: "The body sheds plasma volume without gravity, which can bring lightheadedness.",
-    eva: "Keeps you steady through suit pressurization.",
+    eva: "Keeps you steady while the suit fills with air.",
   },
   {
     id: "glucose",
@@ -75,7 +75,7 @@ export const CARDS: readonly CardCopy[] = [
     v: 0.36,
     measures: "Core body temperature.",
     space: "Without convection heat leaves the body slowly, so crews run warmer.",
-    eva: "The cooling garment is tuned to your baseline.",
+    eva: "Suit cooling is set to your usual temperature.",
   },
   {
     id: "sleep",
@@ -88,7 +88,7 @@ export const CARDS: readonly CardCopy[] = [
     v: 0.12,
     measures: "Hours slept last night.",
     space: "Sixteen sunrises a day, noise and CO2 fragment sleep on the station.",
-    eva: "Short nights cost fine motor control in pressurized gloves.",
+    eva: "Short nights make careful glove work harder.",
   },
   {
     id: "mood",
@@ -101,7 +101,7 @@ export const CARDS: readonly CardCopy[] = [
     v: 0.23,
     measures: "Self-reported mood, 1 to 10.",
     space: "Isolation and confinement wear on mood across a long mission.",
-    eva: "Focus and clear calls on the loop with Mission Control.",
+    eva: "Focus and clear calls with Mission Control.",
   },
 ];
 

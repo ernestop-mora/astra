@@ -9,13 +9,13 @@ import "./globals.css";
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
-  weight: ["300", "500"],
+  weight: ["400", "500", "600"],
 });
 
 const dmMono = DM_Mono({
   variable: "--font-dm-mono",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
@@ -29,7 +29,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${spaceGrotesk.variable} ${dmMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      {/* Header row, then the page takes the rest of the screen: one view, no page scroll. */}
+      <body className="grid min-h-dvh grid-rows-[auto_minmax(0,1fr)] fit:h-dvh">
+        <a href="#main" className="skip-link">
+          Skip to content
+        </a>
         <MotionProvider>
           <TopNav />
           <FaultFromUrl />

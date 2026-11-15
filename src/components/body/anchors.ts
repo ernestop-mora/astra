@@ -1,10 +1,11 @@
 /**
  * Body zones in the shared body frame (y -1 feet to 1 head top, z toward the
- * front). Position sits on the surface; normal points out of it and decides
- * whether the zone faces the camera. Calibrated by capture against the placeholder figure:
- * recalibrate when public/models/body.glb is added.
+ * front). Position sits on the skin; normal points out of it and decides
+ * whether the zone faces the camera. Both are measured on the model itself by
+ * tools/convert-body.py, so they move with it whenever the model is rebuilt.
  */
 import type { Vec3 } from "./geometry";
+import { ZONE_SURFACE } from "./model.generated";
 
 export const ANCHOR_IDS = ["head", "heart", "torso", "abdomen"] as const;
 export type AnchorId = (typeof ANCHOR_IDS)[number];
@@ -16,10 +17,10 @@ export interface Anchor {
 }
 
 export const ANCHORS: Record<AnchorId, Anchor> = {
-  head: { position: [0, 0.855, 0.12], normal: [0, 0.15, 1], label: "Head" },
-  heart: { position: [0.025, 0.37, 0.112], normal: [0.05, 0, 1], label: "Heart" },
-  torso: { position: [-0.1, 0.3, 0.112], normal: [-0.1, 0, 1], label: "Torso" },
-  abdomen: { position: [0.06, 0.14, 0.102], normal: [0.05, 0, 1], label: "Abdomen" },
+  head: { ...ZONE_SURFACE.head, label: "Head" },
+  heart: { ...ZONE_SURFACE.heart, label: "Heart" },
+  torso: { ...ZONE_SURFACE.torso, label: "Torso" },
+  abdomen: { ...ZONE_SURFACE.abdomen, label: "Abdomen" },
 };
 
 export function isAnchorId(v: string | null): v is AnchorId {

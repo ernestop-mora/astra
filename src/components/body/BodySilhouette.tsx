@@ -1,56 +1,40 @@
-import { BODY_PARTS, pxPerUnit } from "./geometry";
+import { pxPerUnit } from "./geometry";
+import { SILHOUETTE_ROWS } from "./model.generated";
 
 interface BodySilhouetteProps {
   width: number;
   height: number;
 }
 
-/** Flat SVG fallback drawn from the same body spec as the 3D renderer. */
+const ROW = 2 / SILHOUETTE_ROWS.length;
+
+/** One closed strip per covered span of each row, slightly overlapped so no seams show. */
+const PATH = SILHOUETTE_ROWS.map((spans, i) => {
+  const top = -(-1 + (i + 1) * ROW) - 0.002;
+  let d = "";
+  for (let s = 0; s < spans.length; s += 2) {
+    d += `M${spans[s]} ${top.toFixed(4)}H${spans[s + 1]}v${(ROW + 0.004).toFixed(4)}H${spans[s]}Z`;
+  }
+  return d;
+}).join("");
+
+/**
+ * Flat fallback, and the stand-in while the 3D model loads. It is the front
+ * outline of the same model (tools/convert-body.py), in the same translucent cyan.
+ */
 export function BodySilhouette({ width, height }: BodySilhouetteProps) {
   if (width === 0 || height === 0) return null;
   const k = pxPerUnit(height);
   const vw = width / k;
   const vh = height / k;
-  // y is flipped: SVG grows downward, the body frame grows upward.
-  const y = (v: number) => -v;
 
   return (
     <svg
       className="absolute inset-0 h-full w-full"
-      viewBox={`${-vw / 2} ${-vh / 2} ${vw} ${vh}`}
+      viewBox={`${-vw / 2} ${-vh / 2 - 0.02} ${vw} ${vh}`}
       aria-hidden="true"
     >
-      <g fill="var(--cream)" stroke="var(--cream)" opacity={0.85}>
-        {BODY_PARTS.map((p, i) => {
-          if (p.kind === "sphere") {
-            return <circle key={i} cx={p.c[0]} cy={y(p.c[1])} r={p.r} stroke="none" />;
-          }
-          if (p.kind === "capsule") {
-            return (
-              <line
-                key={i}
-                x1={p.a[0]}
-                y1={y(p.a[1])}
-                x2={p.b[0]}
-                y2={y(p.b[1])}
-                strokeWidth={p.r * 2}
-                strokeLinecap="round"
-              />
-            );
-          }
-          return (
-            <rect
-              key={i}
-              x={p.c[0] - p.w / 2}
-              y={y(p.c[1]) - p.h / 2}
-              width={p.w}
-              height={p.h}
-              rx={p.radius}
-              stroke="none"
-            />
-          );
-        })}
-      </g>
+      <path d={PATH} fill="var(--cyan)" fillOpacity={0.16} />
     </svg>
   );
 }

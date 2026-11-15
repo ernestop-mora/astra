@@ -35,18 +35,53 @@ export function sensorStatus(fault: SensorFault | null): SensorStatus[] {
   }));
 }
 
+/**
+ * DATA MINIMISATION. What each consent level puts in a packet, and nothing else:
+ *
+ *   field            private   doctor ("My doctor only")     open ("Open NASA data")
+ *   ---------------  --------  ----------------------------  -------------------------
+ *   recipient        -         your doctor                   NASA open data
+ *   who              -         pseudonymous ID               nothing
+ *   name             never     never                         never
+ *   crew ID          never     never                         never
+ *   time             -         exact, to the second          rounded down to the hour
+ *   six readings     -         yes ("No signal" if offline)  yes (offline one left out)
+ *   sensor status    -         yes                           no
+ *   time capsule     never     never                         never
+ *   assistant chat   never     never                         never
+ *   actions, score   never     never                         never
+ *
+ * "private" builds no packet at all. This is a mock-up: no packet is ever
+ * transmitted; the panel only shows what would leave the device.
+ */
 export type Packet =
   | { kind: "none" }
   | {
       kind: "shared";
+      level: "doctor" | "open";
       recipient: string;
-      /** null when the packet is anonymized */
-      subject: Crew | null;
-      label: string | null;
+      /** Stands in for the person; null when the packet carries no identifier at all */
+      pseudonym: string | null;
       timestamp: number | null;
+      precision: "second" | "hour";
       rows: readonly PacketRow[];
-      sensors: readonly SensorStatus[];
+      /** null when sensor status is not part of this level */
+      sensors: readonly SensorStatus[] | null;
     };
+
+const HOUR_MS = 3_600_000;
+
+/**
+ * A stable code in place of the name and the crew ID. The doctor's side keeps
+ * the table that maps it back to a person; the packet does not. In this mock-up
+ * it is a plain hash of the simulated crew ID. A real system would use a random
+ * or keyed code issued by medical operations.
+ */
+export function pseudonym(crew: Crew): string {
+  let h = 0x811c9dc5;
+  for (const ch of crew.id) h = Math.imul(h ^ ch.charCodeAt(0), 0x01000193) >>> 0;
+  return `P-${h.toString(16).padStart(8, "0").slice(0, 6).toUpperCase()}`;
+}
 
 export function buildPacket(
   consent: Consent,
@@ -57,42 +92,45 @@ export function buildPacket(
 ): Packet {
   if (consent === "private") return { kind: "none" };
 
-  // A metric whose sensor is offline is not sent as a live value.
   const offlineCard = fault ? SENSORS[fault.sensor].card : null;
-  const rows = CARDS.map((c) => ({
-    name: c.name,
-    value: c.id === offlineCard ? "No signal" : c.format(readings),
-    unit: c.id === offlineCard ? "" : c.unit,
-  }));
-  const sensors = sensorStatus(fault);
 
   if (consent === "doctor") {
     return {
       kind: "shared",
-      recipient: "Flight surgeon",
-      subject: crew,
-      label: null,
+      level: "doctor",
+      recipient: "Your doctor",
+      pseudonym: pseudonym(crew),
       timestamp: readingsAt,
-      rows,
-      sensors,
+      precision: "second",
+      // A metric whose sensor is offline is not sent as a live value.
+      rows: CARDS.map((c) => ({
+        name: c.name,
+        value: c.id === offlineCard ? "No signal" : c.format(readings),
+        unit: c.id === offlineCard ? "" : c.unit,
+      })),
+      sensors: sensorStatus(fault),
     };
   }
 
   return {
     kind: "shared",
+    level: "open",
     recipient: "NASA open data",
-    subject: null,
-    label: "Anonymized, usable for research and education",
-    timestamp: readingsAt,
-    rows,
-    sensors,
+    pseudonym: null,
+    timestamp: readingsAt === null ? null : Math.floor(readingsAt / HOUR_MS) * HOUR_MS,
+    precision: "hour",
+    // Readings only. An offline metric is left out, so sensor health is not revealed.
+    rows: CARDS.filter((c) => c.id !== offlineCard).map((c) => ({ name: c.name, value: c.format(readings), unit: c.unit })),
+    sensors: null,
   };
 }
 
-/** Deterministic, locale-free GMT stamp (station time). */
-export function formatStamp(ms: number): string {
+/** Deterministic, locale-free GMT stamp (station time). Hour precision drops minutes and seconds. */
+export function formatStamp(ms: number, precision: "second" | "hour" = "second"): string {
   const d = new Date(ms);
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}, ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} GMT`;
+  const day = `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  if (precision === "hour") return `${day}, ${p(d.getUTCHours())}:00 GMT`;
+  return `${day}, ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} GMT`;
 }

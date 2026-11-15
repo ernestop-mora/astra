@@ -1,21 +1,36 @@
-import type { Status } from "@/lib/triage";
+import { CircleCheck, OctagonAlert, TriangleAlert, WifiOff, type LucideIcon } from "lucide-react";
+import { STATUS_COLOR, STATUS_LABEL, type Status } from "@/lib/triage";
 
-const SHAPE: Record<Status, string> = {
-  /** fixed dot */
-  ok: "size-1.5 bg-cyan",
-  /** ring that pulses */
-  caution: "size-2.5 border-2 border-amber animate-[ring-pulse_2.4s_ease-in-out_infinite]",
-  /** filled */
-  act: "size-2.5 bg-coral",
-  /** dashed ring: no signal */
-  offline: "size-2.5 border-[1.5px] border-dashed border-slate",
+const ICON: Record<Status, LucideIcon> = {
+  ok: CircleCheck,
+  caution: TriangleAlert,
+  act: OctagonAlert,
+  offline: WifiOff,
 };
 
-/** State is always colour plus shape: fixed dot, pulsing ring, solid fill, or dashed ring for no signal. */
+/**
+ * State is never colour alone: each state has its own icon (check, triangle,
+ * octagon, no signal) in its colour. Pair it with the word, or use StatusBadge.
+ */
 export function StatusDot({ status, className = "" }: { status: Status; className?: string }) {
+  const Icon = ICON[status];
   return (
-    <span aria-hidden="true" className={`inline-grid size-3 shrink-0 place-items-center ${className}`}>
-      <span className={`block rounded-full ${SHAPE[status]}`} />
+    <Icon
+      size={14}
+      strokeWidth={2}
+      aria-hidden="true"
+      className={`shrink-0 ${className}`}
+      style={{ color: STATUS_COLOR[status] }}
+    />
+  );
+}
+
+/** Icon and word together: "In range", "Caution", "Act now", "No signal". */
+export function StatusBadge({ status, className = "" }: { status: Status; className?: string }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-xs font-medium text-cream ${className}`}>
+      <StatusDot status={status} />
+      {STATUS_LABEL[status]}
     </span>
   );
 }

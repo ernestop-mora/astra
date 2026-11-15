@@ -7,5 +7,5 @@ export { RangeBar } from "./RangeBar";
 export { ScoreRing } from "./ScoreRing";
 export { Sparkline } from "./Sparkline";
 export { Segmented, type SegmentedOption } from "./Segmented";
-export { StatusDot } from "./StatusDot";
+export { StatusBadge, StatusDot } from "./StatusDot";
 export type { ForceState } from "./states";

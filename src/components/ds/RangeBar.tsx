@@ -24,10 +24,10 @@ export function RangeBar({ inFrom, inTo, at, valueLabel, status }: RangeBarProps
       >
         {valueLabel}
       </span>
-      <div className="relative h-1.5 rounded-pill bg-cream/10">
-        <div className="absolute inset-y-0 rounded-pill bg-cyan/55" style={{ left: `${inFrom}%`, width: `${inTo - inFrom}%` }} />
+      <div className="relative h-1.5 rounded-pill bg-cream/25">
+        <div className="absolute inset-y-0 rounded-pill bg-cyan" style={{ left: `${inFrom}%`, width: `${inTo - inFrom}%` }} />
         <div
-          className="absolute -top-1.5 h-[18px] w-0.5 -translate-x-1/2 rounded-pill"
+          className="absolute -top-1 h-3.5 w-0.5 -translate-x-1/2 rounded-pill"
           style={{ left: `${at}%`, background: status === "ok" ? "var(--cream)" : STATUS_COLOR[status] }}
         />
       </div>

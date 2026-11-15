@@ -62,7 +62,7 @@ function Tag({ tone, children }: { tone: "estimate" | "simulated"; children: Rea
   return (
     <span
       className={`rounded-pill border px-2.5 py-0.5 text-xs ${
-        tone === "estimate" ? "border-cyan-line text-cyan" : "border-slate/50 text-slate"
+        tone === "estimate" ? "border-cyan text-cyan" : "border-slate text-mute"
       }`}
     >
       {children}
@@ -98,24 +98,26 @@ export default function WorkshopPage() {
   };
 
   return (
-    // Normal flow only: alert strip, scene, ETA row, glass panels. The main fills the
-    // screen and grows (page scroll) on short windows instead of squeezing the scene.
-    <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-5 px-6 py-6 lg:px-12">
+    // Normal flow only: alert strip, scene, ETA row, glass panels. On the one-screen
+    // layout the scene takes whatever height is left; small windows scroll the page.
+    <main id="main" tabIndex={-1} className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-col gap-4 px-6 pt-6 pb-28 outline-none fit:px-12 fit:py-5">
+      <h1 className="sr-only">Workshop</h1>
       {/* 1. Alert strip: the one coral accent on this screen */}
       <section
         aria-label="Sensor status"
-        className="surface flex min-h-16 flex-wrap items-center gap-x-6 gap-y-3 rounded-panel py-3 pr-4 pl-5"
+        className="surface flex min-h-14 shrink-0 flex-wrap items-center gap-x-6 gap-y-2 rounded-panel py-2 pr-4 pl-5"
       >
         {fault && sensor ? (
           <>
             <AlertTriangle size={22} strokeWidth={1.5} className="shrink-0 text-coral" aria-hidden="true" />
-            <p className="flex flex-1 items-baseline gap-3">
-              <span className="text-lg text-cream">{sensor.name} offline</span>
-              <span className="font-mono text-sm text-slate">{lastReadingLabel(fault.since, now)}</span>
+            {/* The one alert on the app: a sensor failure is announced at once. */}
+            <p role="alert" className="flex flex-1 flex-wrap items-baseline gap-x-3">
+              <span className="text-lg font-medium text-cream">{sensor.name} offline</span>
+              <span className="font-mono text-sm text-mute">{lastReadingLabel(fault.since, now)}</span>
             </p>
           </>
         ) : (
-          <p className="flex flex-1 items-center gap-3 text-lg text-cream">
+          <p role="status" className="flex flex-1 items-center gap-3 text-lg font-medium text-cream">
             <StatusDot status="ok" />
             All sensors online
           </p>
@@ -133,12 +135,15 @@ export default function WorkshopPage() {
           </Menu.Trigger>
           <Menu.Portal>
             <Menu.Positioner sideOffset={6} align="end" className="z-50">
-              <Menu.Popup className="glass min-w-56 rounded-field p-1 outline-none">
+              <Menu.Popup
+                style={{ background: "color-mix(in srgb, var(--navy) 92%, transparent)" }}
+                className="glass min-w-56 rounded-field p-1 outline-none"
+              >
                 {SENSOR_IDS.map((id) => (
                   <Menu.Item
                     key={id}
                     onClick={() => fail(id)}
-                    className="flex h-9 cursor-pointer items-center justify-between gap-4 rounded-field px-3 text-sm text-cream outline-none select-none data-[highlighted]:bg-cyan-soft"
+                    className="flex h-9 cursor-pointer items-center justify-between gap-4 rounded-field px-3 text-sm text-cream outline-none select-none data-[highlighted]:bg-cyan-soft data-[highlighted]:outline-2 data-[highlighted]:-outline-offset-2 data-[highlighted]:outline-cyan data-[highlighted]:outline-solid"
                   >
                     Fail {SENSORS[id].name.toLowerCase()}
                     {fault?.sensor === id && <StatusDot status="offline" />}
@@ -147,7 +152,7 @@ export default function WorkshopPage() {
                 <Menu.Item
                   onClick={() => fail(null)}
                   disabled={!fault}
-                  className="flex h-9 cursor-pointer items-center rounded-field px-3 text-sm text-cream outline-none select-none data-[disabled]:cursor-default data-[disabled]:text-slate data-[highlighted]:bg-cyan-soft"
+                  className="flex h-9 cursor-pointer items-center rounded-field px-3 text-sm text-cream outline-none select-none data-[disabled]:cursor-default data-[disabled]:text-mute data-[highlighted]:bg-cyan-soft data-[highlighted]:outline-2 data-[highlighted]:-outline-offset-2 data-[highlighted]:outline-cyan data-[highlighted]:outline-solid"
                 >
                   Clear fault
                 </Menu.Item>
@@ -158,33 +163,35 @@ export default function WorkshopPage() {
       </section>
 
       {/* 2. The scene, full width. Nothing is positioned over the drawing. */}
-      <section aria-label="Resupply" className="flex min-h-0 flex-1 flex-col gap-4">
-        {/* Takes the free height, never less than 340 px; the SVG scales inside without cropping */}
-        <div className="min-h-[340px] flex-1 basis-0">
+      <section aria-label="Resupply" className="flex flex-1 flex-col gap-3">
+        {/* Takes the free height, never less than 11 rem; the SVG scales inside without cropping */}
+        <div className="min-h-[11rem] flex-1 basis-0">
           <DeliveryScene profile={profile} eta={eta} progress={delivery.progress} counter={counter} />
         </div>
 
         {/* ETA in its own row below the scene: figure first, then breakdown and labels */}
-        <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-6">
+        <div className="grid shrink-0 items-center gap-x-6 gap-y-3 md:grid-cols-[1fr_auto_1fr]">
           <div>
             {eta.note && (
-              <p className="flex max-w-sm items-start gap-2 text-sm text-amber">
-                <AlertTriangle size={16} strokeWidth={1.5} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <p className="flex max-w-sm items-start gap-2 text-sm text-cream">
+                <AlertTriangle size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-amber" aria-hidden="true" />
                 {eta.note.text}
               </p>
             )}
           </div>
-          <div className="flex flex-col items-center text-center">
-            <p className="font-mono text-5xl font-light text-cream">{eta.total}</p>
-            <p className="mt-2 text-sm text-cream/75">
-              {eta.wait}, {eta.flight}
-            </p>
-            <p className="mt-2 flex flex-wrap justify-center gap-2">
-              <Tag tone="estimate">Estimate</Tag>
-              <Tag tone="simulated">Simulated</Tag>
-            </p>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+            <p className="font-mono text-figure whitespace-nowrap text-cream">{eta.total}</p>
+            <div>
+              <p className="text-sm text-mute">
+                {eta.wait}, {eta.flight}
+              </p>
+              <p className="mt-1 flex flex-wrap gap-2">
+                <Tag tone="estimate">Estimate</Tag>
+                <Tag tone="simulated">Simulated</Tag>
+              </p>
+            </div>
           </div>
-          <div className="flex justify-end">
+          <div className="flex md:justify-end">
             <Button variant="quiet" onClick={delivery.preview}>
               <Play size={16} strokeWidth={1.5} aria-hidden="true" />
               Preview delivery
@@ -194,52 +201,52 @@ export default function WorkshopPage() {
       </section>
 
       {/* 3. What to do meanwhile */}
-      <div className="grid shrink-0 gap-5 lg:h-[320px] lg:grid-cols-3">
-        <GlassPanel className="flex flex-col p-5">
+      <div className="grid shrink-0 gap-4 fit:grid-cols-3">
+        <GlassPanel className="flex flex-col p-4">
           <h2 className="flex items-center gap-2 text-lg font-medium text-cream">
             <Hand size={18} strokeWidth={1.5} className="text-cyan" aria-hidden="true" />
             Right now
           </h2>
           {sensor ? (
             <>
-              <ul className="mt-4 flex flex-col gap-3">
+              <ul className="mt-3 flex flex-col gap-2">
                 {sensor.alternatives.map((a) => (
-                  <li key={a} className="flex items-center gap-3 text-cream">
+                  <li key={a} className="flex items-center gap-3 text-sm text-cream">
                     <CircleCheck size={16} strokeWidth={1.5} className="shrink-0 text-cyan" aria-hidden="true" />
                     {a}
                   </li>
                 ))}
               </ul>
-              <p className="mt-auto text-xs text-slate">{PROTOCOL_NOTE}</p>
+              <p className="mt-auto pt-3 text-xs text-mute">{PROTOCOL_NOTE}</p>
             </>
           ) : (
-            <p className="mt-4 text-cream/75">Every sensor is reporting.</p>
+            <p className="mt-3 text-sm text-mute">Every sensor is reporting.</p>
           )}
         </GlassPanel>
 
-        <GlassPanel className="flex flex-col p-5">
-          <div className="flex items-baseline justify-between gap-3">
+        <GlassPanel className="flex flex-col p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3">
             <h2 className="flex items-center gap-2 text-lg font-medium text-cream">
               <PackageOpen size={18} strokeWidth={1.5} className="text-cyan" aria-hidden="true" />
               Replace it
             </h2>
             {sensor && (
-              <span className="text-sm text-amber">
-                Spare on board: <span className="font-mono">0 of 1</span>
+              <span className="text-sm text-cream">
+                Spare on board: <span className="font-mono text-amber">0 of 1</span>
               </span>
             )}
           </div>
           {sensor && fault ? (
             <Checklist key={fault.sensor} steps={sensor.steps} />
           ) : (
-            <p className="mt-4 text-cream/75">Nothing to replace.</p>
+            <p className="mt-3 text-sm text-mute">Nothing to replace.</p>
           )}
         </GlassPanel>
 
-        <GlassPanel className="flex flex-col p-5">
+        <GlassPanel className="flex flex-col p-4">
           <h2 className="flex items-center gap-2 text-lg font-medium text-cream">
             <RadioTower size={18} strokeWidth={1.5} className="text-cyan" aria-hidden="true" />
-            Ground
+            Mission control
           </h2>
           <Ground key={`${profile}-${fault?.sensor ?? "none"}`} replyMinutes={eta.replyMinutes} disabled={!fault} />
         </GlassPanel>
@@ -251,7 +258,7 @@ export default function WorkshopPage() {
 function Checklist({ steps }: { steps: readonly string[] }) {
   const [done, setDone] = useState<readonly number[]>([]);
   return (
-    <ul className="mt-3 flex flex-col gap-1.5">
+    <ul className="mt-2 flex flex-col gap-1">
       {steps.map((step, i) => (
         <li key={step}>
           <ActionRow
@@ -270,10 +277,10 @@ function Ground({ replyMinutes, disabled }: { replyMinutes: number; disabled: bo
   const [sent, setSent] = useState(false);
   const reply = replyMinutes <= 1 ? "about a minute" : `about ${replyMinutes} min`;
   return (
-    <div className="mt-4 flex flex-1 flex-col">
+    <div className="mt-3 flex flex-1 flex-col">
       {sent ? (
         <div className="mt-auto" role="status">
-          <p className="text-cream">
+          <p className="text-sm text-cream">
             Report queued. Reply expected in <span className="font-mono">{reply}</span>.
           </p>
           <p className="mt-2">

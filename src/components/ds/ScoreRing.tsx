@@ -1,12 +1,15 @@
 "use client";
 
-import { readinessStatus, STATUS_COLOR } from "@/lib/triage";
+import { readinessStatus, STATUS_COLOR, STATUS_LABEL } from "@/lib/triage";
+import { StatusDot } from "./StatusDot";
 
 interface ScoreRingProps {
   score: number;
   /** Uncertainty when a sensor is offline: drawn as a translucent band */
   range?: { low: number; high: number } | null;
+  /** Largest size in px; the ring shrinks with its container. */
   size?: number;
+  className?: string;
 }
 
 const SEGMENTS = 40;
@@ -28,27 +31,29 @@ function arc(c: number, r: number, from: number, to: number): string {
  * Readiness 0-100 as a segmented arc with graduation marks.
  * Cyan from 80, amber 60-79, coral below 60.
  */
-export function ScoreRing({ score, range = null, size = 240 }: ScoreRingProps) {
+export function ScoreRing({ score, range = null, size = 240, className = "" }: ScoreRingProps) {
   const c = size / 2;
   const r = c - 22;
   const lit = Math.round((score / 100) * SEGMENTS);
   const bandFrom = range ? Math.round((range.low / 100) * SEGMENTS) : lit;
   const bandTo = range ? Math.round((range.high / 100) * SEGMENTS) : lit;
   const solid = range ? bandFrom : lit;
-  const color = STATUS_COLOR[readinessStatus(score)];
+  const status = readinessStatus(score);
+  const color = STATUS_COLOR[status];
   const step = 360 / SEGMENTS;
 
   return (
     <div
-      className="relative shrink-0"
-      style={{ width: size, height: size }}
+      className={`relative aspect-square shrink-0 ${className}`}
+      style={{ width: size, maxWidth: "100%" }}
       role="meter"
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={score}
       aria-label="Readiness"
+      aria-valuetext={`${score} of 100, ${STATUS_LABEL[status].toLowerCase()}${range ? `, estimate between ${range.low} and ${range.high}` : ""}`}
     >
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+      <svg className="h-full w-full" viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
         {Array.from({ length: TICKS }, (_, i) => {
           const major = i % 5 === 0;
           const [x1, y1] = polar(c, c - 4, (i * 360) / TICKS);
@@ -68,8 +73,12 @@ export function ScoreRing({ score, range = null, size = 240 }: ScoreRingProps) {
         ))}
       </svg>
       <span className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-mono text-7xl font-light tabular-nums text-cream">{score}</span>
-        <span className="mt-1 text-xs text-slate">{range ? `${range.low}-${range.high} estimate` : "readiness"}</span>
+        <span className="font-mono text-figure tabular-nums text-cream">{score}</span>
+        {/* The level is an icon as well as the arc's colour. */}
+        <span className="flex items-center gap-1.5 text-xs text-mute">
+          <StatusDot status={status} />
+          {range ? `${range.low}-${range.high} estimate` : "readiness"}
+        </span>
       </span>
     </div>
   );

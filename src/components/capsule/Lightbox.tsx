@@ -37,7 +37,7 @@ export function Lightbox({ items, index, onIndexChange, onDelete }: LightboxProp
             if (e.key === "ArrowRight") go(1);
             if (e.key === "ArrowLeft") go(-1);
           }}
-          className="surface-light fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-48px)] w-[min(1120px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col rounded-panel p-6 outline-none"
+          className="surface-light fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-48px)] w-[min(1120px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col rounded-panel p-5 outline-none small:overflow-y-auto"
         >
           {item && Icon && index !== null && (
             <>
@@ -47,8 +47,8 @@ export function Lightbox({ items, index, onIndexChange, onDelete }: LightboxProp
                     <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
                   </span>
                   <div>
-                    <Dialog.Title className="text-2xl font-medium text-navy">{item.name}</Dialog.Title>
-                    <Dialog.Description className="mt-1 text-sm text-navy/70">
+                    <Dialog.Title className="text-lg font-medium text-navy">{item.name}</Dialog.Title>
+                    <Dialog.Description className="mt-1 text-sm text-navy">
                       {item.sender}
                       {item.durationSec !== null && (
                         <>
@@ -72,19 +72,19 @@ export function Lightbox({ items, index, onIndexChange, onDelete }: LightboxProp
                 </div>
               </header>
 
-              <div className="relative mt-5 grid min-h-[min(60dvh,620px)] flex-1 place-items-center overflow-auto rounded-field bg-navy p-4 text-cream">
+              <div className="relative mt-4 grid min-h-[min(50dvh,620px)] flex-1 place-items-center rounded-field bg-navy p-4 text-cream">
                 {item.kind === "note" && item.note !== null ? (
                   <div className="max-w-2xl justify-self-start p-6">
-                    <p className="text-2xl leading-relaxed font-light whitespace-pre-wrap">{item.note}</p>
-                    {item.demo && <p className="mt-8 text-sm text-slate">Demo entry.</p>}
+                    <p className="text-md whitespace-pre-wrap">{item.note}</p>
+                    {item.demo && <p className="mt-6 text-sm text-mute">Demo entry.</p>}
                   </div>
                 ) : item.demo ? (
-                  <p className="p-16 text-center text-lg text-cream/80">Demo entry. Add your own file to play it.</p>
+                  <p className="p-8 text-center text-md text-cream">Demo entry. Add your own file to play it.</p>
                 ) : missing ? (
-                  <p className="p-16 text-center text-cream/80">This file is no longer on this device.</p>
+                  <p className="p-8 text-center text-cream">This file is no longer on this device.</p>
                 ) : !url ? null : item.kind === "photo" ? (
                   // eslint-disable-next-line @next/next/no-img-element -- local object URL
-                  <img src={url} alt={`${item.name}, photo from ${item.sender}`} className="max-h-[66dvh] max-w-full rounded-field object-contain" />
+                  <img src={url} alt={`${item.name}, photo from ${item.sender}`} className="max-h-[56dvh] max-w-full rounded-field object-contain" />
                 ) : item.kind === "video" ? (
                   <video
                     src={url}
@@ -93,7 +93,7 @@ export function Lightbox({ items, index, onIndexChange, onDelete }: LightboxProp
                     playsInline
                     preload="metadata"
                     aria-label={`${item.name}, video from ${item.sender}`}
-                    className="max-h-[66dvh] max-w-full rounded-field"
+                    className="max-h-[56dvh] max-w-full rounded-field"
                   />
                 ) : (
                   <audio src={url} controls preload="metadata" aria-label={`${item.name}, audio from ${item.sender}`} className="w-full max-w-xl" />
@@ -104,7 +104,7 @@ export function Lightbox({ items, index, onIndexChange, onDelete }: LightboxProp
                 <Button variant="light" onClick={() => go(-1)} aria-label="Previous" className="w-10 !px-0">
                   <ChevronLeft size={18} strokeWidth={1.5} aria-hidden="true" />
                 </Button>
-                <span className="font-mono text-sm text-navy/70" aria-live="polite">
+                <span className="font-mono text-sm text-navy" aria-live="polite">
                   {index + 1} / {items.length}
                 </span>
                 <Button variant="light" onClick={() => go(1)} aria-label="Next" className="w-10 !px-0">

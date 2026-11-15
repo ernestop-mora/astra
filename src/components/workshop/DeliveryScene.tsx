@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import type { Eta, ProfileId } from "@/lib/logistics";
 
 /**
@@ -201,8 +202,28 @@ export function DeliveryScene({ profile, eta, progress, counter }: DeliveryScene
   const ship = bez(route, t);
   const path = d(route);
 
+  // Labels keep the type scale on screen whatever the drawing's size: text-xs for
+  // the ticks, text-sm for the counter, converted to the drawing's own units.
+  const svg = useRef<SVGSVGElement>(null);
+  const [unit, setUnit] = useState(1);
+  useEffect(() => {
+    const el = svg.current;
+    if (!el) return;
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const scale = Math.min(r.width / W, r.height / H);
+      if (scale > 0) setUnit(rem / scale);
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const tickSize = 0.75 * unit;
+
   return (
     <svg
+      ref={svg}
       viewBox={`0 0 ${W} ${H}`}
       preserveAspectRatio="xMidYMid meet"
       className="h-full w-full"
@@ -245,12 +266,12 @@ export function DeliveryScene({ profile, eta, progress, counter }: DeliveryScene
               strokeWidth={1.5}
             />
             <text
-              x={p.x + Math.cos(a) * 24}
-              y={p.y + Math.sin(a) * 24 + 5}
+              x={p.x + Math.cos(a) * (12 + tickSize)}
+              y={p.y + Math.sin(a) * (12 + tickSize) + tickSize * 0.35}
               textAnchor="middle"
               className="font-mono"
-              fontSize={15}
-              fill={done ? "var(--cyan)" : "var(--slate)"}
+              fontSize={tickSize}
+              fill={done ? "var(--cyan)" : "var(--slate-text)"}
             >
               {tick.label}
             </text>
@@ -261,7 +282,7 @@ export function DeliveryScene({ profile, eta, progress, counter }: DeliveryScene
       <Ship at={ship} angle={tangent(route, t)} />
 
       {counter && (
-        <text x={W - 24} y={34} textAnchor="end" className="font-mono" fontSize={20} fill="var(--cream)">
+        <text x={W - 24} y={0.875 * unit + 8} textAnchor="end" className="font-mono" fontSize={0.875 * unit} fill="var(--cream)">
           {counter}
         </text>
       )}

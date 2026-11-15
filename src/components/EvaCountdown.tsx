@@ -9,6 +9,7 @@ function format(ms: number): string {
   return `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, "0")}m`;
 }
 
+/** Time left to tomorrow's spacewalk (EVA). The coral dot is Home's one accent. */
 export function EvaCountdown() {
   const [remaining, setRemaining] = useState<number | null>(null);
 
@@ -21,10 +22,13 @@ export function EvaCountdown() {
   }, []);
 
   return (
-    <span className="text-cream">
-      EVA in{" "}
-      <span className="font-mono tabular-nums text-coral">
-        {remaining === null ? <span className="text-slate">--h --m</span> : format(remaining)}
+    <span className="flex items-center gap-2 text-cream">
+      <span aria-hidden="true" className="size-2 rounded-full bg-coral" />
+      <span>
+        Spacewalk in{" "}
+        <span className="font-mono tabular-nums">
+          {remaining === null ? <span className="text-mute">--h --m</span> : format(remaining)}
+        </span>
       </span>
     </span>
   );

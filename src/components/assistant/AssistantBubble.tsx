@@ -31,7 +31,7 @@ export function AssistantBubble() {
       aria-label="Ask Assistant"
       data-assistant-bubble=""
       onClick={openPanel}
-      className="group fixed right-6 bottom-6 z-40 size-16 cursor-pointer rounded-full outline-none transition-transform duration-150 hover:scale-[1.04] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-solid focus-visible:outline-cyan active:scale-[.98]"
+      className="group fixed right-6 bottom-6 z-40 size-16 cursor-pointer rounded-full transition-transform duration-150 hover:scale-[1.04] focus-visible:outline-offset-4 active:scale-[.98]"
     >
       <AssistantFace state="idle" mouth="closed" size={64} compact />
       <span

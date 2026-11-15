@@ -11,6 +11,11 @@
   --navy-3: #2a4659;
   --cream: #e9e4e0;
   --slate: #6e7575;
+  /* Slate lifted 60% toward cream, for text and icons only: 5.0:1 on navy-3, 7.4:1 on navy.
+     Plain slate (3.1:1 on navy) stays for lines, dividers and inactive marks. */
+  --slate-text: #b8b8b5;
+  /* Edge of a control (button, field, chip, tag): cream at 50%, 3.2:1 on navy-3, 4.0:1 on navy. */
+  --control-border: rgba(233, 228, 224, 0.5);
 
   /* Signal */
   --cyan: #62d4e6;
@@ -33,6 +38,37 @@
   --panel-shadow: 0 24px 60px -20px rgba(8, 16, 23, 0.65);
 }
 
+/* The one type scale, in rem. Tailwind's own scale and weights are removed, so
+   text-xs ... text-figure and font-normal, font-medium, font-semibold are all there is.
+   Reading text is 1.5; headings and figures are 1.2. */
+@theme {
+  --text-*: initial;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-md: 1rem;
+  --text-md--line-height: 1.5;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.2;
+  --text-xl: 1.75rem;
+  --text-xl--line-height: 1.2;
+  --text-figure: 3rem;
+  --text-figure--line-height: 1.2;
+
+  --font-weight-*: initial;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --leading-*: initial;
+}
+
+/* The demo layout: fits one screen from 1280 x 720 at the default text size.
+   Smaller windows, 200% zoom and larger default text fall back to a scrolling page. */
+@custom-variant fit (@media (min-width: 80rem) and (min-height: 45rem));
+@custom-variant small (@media not ((min-width: 80rem) and (min-height: 45rem)));
+
 @theme inline {
   --font-sans: var(--font-space-grotesk);
   --font-mono: var(--font-dm-mono);
@@ -42,6 +78,8 @@
   --color-navy-3: var(--navy-3);
   --color-cream: var(--cream);
   --color-slate: var(--slate);
+  --color-mute: var(--slate-text);
+  --color-control: var(--control-border);
   --color-cyan: var(--cyan);
   --color-cyan-soft: var(--cyan-soft);
   --color-cyan-line: var(--cyan-line);
@@ -58,20 +96,34 @@
 @layer base {
   html {
     @apply font-sans;
+    font-size: 100%;
+    /* Keyboard focus is never left under the floating assistant. */
+    scroll-padding-bottom: 6rem;
   }
   body {
     /* Stage: navy, lifting very slightly toward navy-2 at the top */
     background: linear-gradient(180deg, var(--navy-2) 0%, var(--navy) 420px) no-repeat var(--navy);
     color: var(--cream);
-    /* Only 300 and 500 are loaded; 400 would be synthesized as 500 */
-    font-weight: 300;
+    font-size: var(--text-md);
+    line-height: 1.5;
+    font-weight: 400;
+  }
+  /* Focus is always a 2 px cyan ring (8.4:1 on navy); navy on the cream surfaces (11:1). */
+  :focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 2px;
+  }
+  .surface-light :focus-visible,
+  .surface-light:focus-visible {
+    outline-color: var(--navy);
   }
 }
 
 /* Depth layers: navy-2 surface easing into navy-3, very subtle */
 @utility surface {
   background: linear-gradient(160deg, var(--navy-3) 0%, var(--navy-2) 70%);
-  border: 1px solid var(--glass-border);
+  /* Controls set --surface-border to the control edge; plain cards keep the glass edge. */
+  border: 1px solid var(--surface-border, var(--glass-border));
   box-shadow: var(--glass-highlight);
 }
 
@@ -83,7 +135,7 @@
 
 @utility glass {
   background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--surface-border, var(--glass-border));
   box-shadow: var(--glass-highlight);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -108,6 +160,8 @@
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -207,4 +261,23 @@
 }
 .assistant-dot {
   animation: assistant-dot 600ms ease-in-out infinite;
+}
+
+/* Skip link: off screen until it takes keyboard focus. */
+.skip-link {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 60;
+  transform: translateY(-200%);
+  border-radius: 999px;
+  background: var(--cyan);
+  color: var(--navy);
+  padding: 0.5rem 1rem;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+.skip-link:focus-visible {
+  transform: none;
+  outline-offset: 2px;
 }

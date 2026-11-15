@@ -1,7 +1,8 @@
 "use client";
 
 import { BodyMap } from "@/components/body/BodyMap";
-import { ActionRow, ScoreRing, Segmented } from "@/components/ds";
+import { ShieldCheck } from "lucide-react";
+import { ActionRow, Button, ScoreRing, Segmented } from "@/components/ds";
 import { EvaCountdown } from "@/components/EvaCountdown";
 import { ACTIONS, MISSION_DAY } from "@/data/home";
 import { useSimulator } from "@/lib/simulator";
@@ -27,10 +28,10 @@ export default function HomePage() {
   const openPanel = useAppStore((s) => s.openPanel);
 
   return (
-    <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-6 py-8 lg:h-[calc(100dvh-3.5rem)] lg:px-12 lg:py-6">
-      <div className="grid flex-1 gap-10 lg:min-h-0 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-14">
-        <section aria-labelledby="diagnosis" className="flex flex-col lg:min-h-0">
-          <header className="flex items-center gap-2.5 text-sm text-slate">
+    <main id="main" tabIndex={-1} className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-col px-6 pt-6 pb-28 outline-none fit:px-12 fit:py-5">
+      <div className="grid flex-1 gap-8 fit:min-h-0 fit:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] fit:gap-12">
+        <section aria-labelledby="diagnosis" className="flex flex-col fit:min-h-0">
+          <header className="flex flex-wrap items-center gap-x-2.5 text-sm text-mute">
             <span>
               Mission day <span className="font-mono">{MISSION_DAY}</span>
             </span>
@@ -38,23 +39,24 @@ export default function HomePage() {
             <EvaCountdown />
           </header>
 
-          <div className="my-auto py-8">
-            <h1 id="diagnosis" className="max-w-2xl text-5xl leading-[1.1] font-light text-cream">
+          <div className="my-auto py-2">
+            <h1 id="diagnosis" className="max-w-xl text-xl font-medium text-cream">
               {range ? (
                 "One sensor is offline. Readiness is an estimate."
               ) : (
                 <>
-                  Your body is <span className="font-mono">{score}%</span> ready for tomorrow&apos;s EVA.
+                  Your body is <span className="font-mono">{score}%</span> ready for tomorrow&apos;s spacewalk.
                 </>
               )}
             </h1>
 
-            <div className="mt-8">
+            {/* The ring gives way before anything else when the window is short. */}
+            <div className="mt-4 w-[min(232px,26dvh)] min-w-40">
               <ScoreRing score={score} range={range} size={232} />
             </div>
 
-            <h2 className="mt-10 text-xs text-slate">Before tomorrow</h2>
-            <ul className="mt-3 flex max-w-md flex-col gap-2.5">
+            <h2 className="mt-4 text-xs text-mute">Before tomorrow</h2>
+            <ul className="mt-2 flex max-w-md flex-col gap-2">
               {ACTIONS.map((a) => (
                 <li key={a.id}>
                   <ActionRow
@@ -70,6 +72,7 @@ export default function HomePage() {
             </ul>
           </div>
 
+          <div className="flex flex-wrap items-center gap-3">
           <Segmented
             aria-label="Who sees your health data"
             options={CONSENT_OPTIONS}
@@ -79,11 +82,15 @@ export default function HomePage() {
               openPanel({ kind: "packet" });
             }}
             itemProps={{ "data-panel-trigger": "" }}
-            className="self-start"
           />
+          <Button variant="quiet" data-panel-trigger="" onClick={() => openPanel({ kind: "packet" })}>
+            <ShieldCheck size={16} strokeWidth={1.5} aria-hidden="true" />
+            Privacy
+          </Button>
+          </div>
         </section>
 
-        <section aria-label="Body" className="lg:min-h-0">
+        <section aria-label="Body" className="fit:min-h-0">
           <BodyMap />
         </section>
       </div>

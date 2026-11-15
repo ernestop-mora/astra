@@ -1,17 +1,15 @@
 "use client";
 
-import { OrbitControls, RoundedBox, useGLTF } from "@react-three/drei";
+import { OrbitControls, useGLTF } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { Status } from "@/lib/triage";
 import { ANCHOR_IDS, ANCHORS, type AnchorBus, type AnchorFrame, type AnchorId } from "./anchors";
-import { BODY_PARTS, type BodyPart } from "./geometry";
 import { createXrayMaterials, type XrayMaterials } from "./xrayMaterial";
 
 const GLB_URL = "/models/body.glb";
-const HAS_GLB = process.env.NEXT_PUBLIC_HAS_BODY_GLB === "1";
 /** Draw order: body depth pre-pass, body shell, then the anchor nodes on top. */
 const ORDER = { depth: 1, shell: 2, nodes: 3 } as const;
 
@@ -36,59 +34,13 @@ function homePosition(yawDeg: number): THREE.Vector3 {
   );
 }
 
-/* ---------- body geometry ---------- */
-
-function PartMesh({ part, material, order }: { part: BodyPart; material: THREE.Material; order: number }) {
-  if (part.kind === "sphere") {
-    return (
-      <mesh position={[...part.c]} material={material} renderOrder={order}>
-        <sphereGeometry args={[part.r, 40, 28]} />
-      </mesh>
-    );
-  }
-  if (part.kind === "block") {
-    return (
-      <RoundedBox
-        args={[part.w, part.h, part.d]}
-        radius={part.radius}
-        smoothness={5}
-        position={[...part.c]}
-        material={material}
-        renderOrder={order}
-      />
-    );
-  }
-  const a = new THREE.Vector3(...part.a);
-  const b = new THREE.Vector3(...part.b);
-  const dir = b.clone().sub(a);
-  const length = dir.length();
-  const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
-  return (
-    <mesh position={a.clone().add(b).multiplyScalar(0.5)} quaternion={quat} material={material} renderOrder={order}>
-      <capsuleGeometry args={[part.r, length, 10, 28]} />
-    </mesh>
-  );
-}
-
-/** PLACEHOLDER while public/models/body.glb is missing. */
-function PlaceholderBody({ mats }: { mats: XrayMaterials }) {
-  return (
-    <>
-      {BODY_PARTS.map((p, i) => (
-        <PartMesh key={`d${i}`} part={p} material={mats.depth} order={ORDER.depth} />
-      ))}
-      {BODY_PARTS.map((p, i) => (
-        <PartMesh key={`s${i}`} part={p} material={mats.shell} order={ORDER.shell} />
-      ))}
-    </>
-  );
-}
-
 /* ---------- glTF body ---------- */
 
 /** public/models/body.glb fitted to the 2-unit body frame, drawn twice: depth, then shell. */
-function GlbBody({ mats }: { mats: XrayMaterials }) {
-  const { scene } = useGLTF(GLB_URL);
+function GlbBody({ mats, onReady }: { mats: XrayMaterials; onReady: () => void }) {
+  // No Draco and no Meshopt: the model ships uncompressed, so no WebAssembly decoder is loaded.
+  const { scene } = useGLTF(GLB_URL, false, false);
+  useEffect(() => onReady(), [onReady]);
   const fitted = useMemo(() => {
     const box = new THREE.Box3().setFromObject(scene);
     const size = box.getSize(new THREE.Vector3());
@@ -311,9 +263,32 @@ function focusPose(id: AnchorId): Pose {
 
 const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 
-/** Eases the camera to a zone (about 600 ms) and back to where it was. */
-function CameraDirector({ focus, reduced }: { focus: AnchorId | null; reduced: boolean }) {
+const UP = new THREE.Vector3(0, 1, 0);
+const TURN_RAD = Math.PI / 6;
+const TURN_S = 0.3;
+
+/** A turn asked for by the buttons or the keyboard: dragging is never the only way. */
+export interface TurnCommand {
+  kind: "left" | "right" | "reset";
+  /** Changes on every press */
+  id: number;
+}
+
+/** Eases the camera to a zone (about 600 ms) and back, and turns it on command. */
+function CameraDirector({
+  focus,
+  reduced,
+  turn,
+  homeYaw,
+}: {
+  focus: AnchorId | null;
+  reduced: boolean;
+  turn: TurnCommand | null;
+  homeYaw: number;
+}) {
   const current = useRef<AnchorId | null>(null);
+  const turned = useRef(0);
+  const duration = useRef(TWEEN_S);
   const home = useRef<Pose | null>(null);
   const tween = useRef<{ from: Pose; to: Pose; start: number } | null>(null);
 
@@ -328,13 +303,35 @@ function CameraDirector({ focus, reduced }: { focus: AnchorId | null; reduced: b
         ? focusPose(focus)
         : (home.current ?? { p: homePosition(0), t: HOME_TARGET.clone() });
       tween.current = { from, to, start: clock.elapsedTime };
+      duration.current = TWEEN_S;
       current.current = focus;
       orbit.enabled = false;
     }
 
+    if (turn && turn.id !== turned.current) {
+      turned.current = turn.id;
+      if (focus === null) {
+        // Start from where a running turn is headed, so quick presses add up.
+        const from = { p: camera.position.clone(), t: orbit.target.clone() };
+        const base = tween.current?.to ?? from;
+        const to =
+          turn.kind === "reset"
+            ? { p: homePosition(homeYaw), t: HOME_TARGET.clone() }
+            : {
+                p: base.t
+                  .clone()
+                  .add(base.p.clone().sub(base.t).applyAxisAngle(UP, turn.kind === "left" ? -TURN_RAD : TURN_RAD)),
+                t: base.t.clone(),
+              };
+        tween.current = { from, to, start: clock.elapsedTime };
+        duration.current = TURN_S;
+        orbit.enabled = false;
+      }
+    }
+
     const tw = tween.current;
     if (!tw) return;
-    const k = reduced ? 1 : Math.min(1, (clock.elapsedTime - tw.start) / TWEEN_S);
+    const k = reduced ? 1 : Math.min(1, (clock.elapsedTime - tw.start) / duration.current);
     const e = ease(k);
     camera.position.lerpVectors(tw.from.p, tw.to.p, e);
     orbit.target.lerpVectors(tw.from.t, tw.to.t, e);
@@ -360,9 +357,13 @@ export interface Body3DProps {
   frozen: boolean;
   initialYaw: number;
   reducedMotion: boolean;
+  /** Latest turn asked for from outside the canvas */
+  turn: TurnCommand | null;
+  /** Called once the model is on screen */
+  onReady: () => void;
 }
 
-export default function Body3D({ bus, focus, nodeStatus, bpm, frozen, initialYaw, reducedMotion }: Body3DProps) {
+export default function Body3D({ bus, focus, nodeStatus, bpm, frozen, initialYaw, reducedMotion, turn, onReady }: Body3DProps) {
   const [spinning, setSpinning] = useState(!reducedMotion);
   const cyan = useMemo(() => cssColor("--cyan"), []);
   const stateColors = useMemo<Record<Status, string>>(
@@ -401,21 +402,18 @@ export default function Body3D({ bus, focus, nodeStatus, bpm, frozen, initialYaw
         maxPolarAngle={Math.PI * 0.58}
         minDistance={2.0}
         maxDistance={6.5}
-        autoRotate={spinning && !frozen && focus === null}
+        autoRotate={spinning && !reducedMotion && !frozen && focus === null}
         autoRotateSpeed={0.6}
         onStart={() => setSpinning(false)}
       />
-      <CameraDirector focus={focus} reduced={reducedMotion} />
+      <CameraDirector focus={focus} reduced={reducedMotion} turn={turn} homeYaw={initialYaw} />
       <AnchorProjector bus={bus} />
       <TurnRing color={cyan} />
       <AnchorNodes status={nodeStatus} bpm={bpm} colors={stateColors} reduced={reducedMotion} />
-      {HAS_GLB ? (
-        <Suspense fallback={null}>
-          <GlbBody mats={mats} />
-        </Suspense>
-      ) : (
-        <PlaceholderBody mats={mats} />
-      )}
+      {/* The model loads after the page; until then the flat silhouette stands in. */}
+      <Suspense fallback={null}>
+        <GlbBody mats={mats} onReady={onReady} />
+      </Suspense>
     </Canvas>
   );
 }

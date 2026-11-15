@@ -46,7 +46,7 @@ export function Segmented<T extends string>({
       }}
       disabled={disabled}
       aria-label={aria["aria-label"]}
-      className={`glass inline-flex rounded-pill p-1 data-[disabled]:opacity-40 ${className}`}
+      className={`glass inline-flex flex-wrap rounded-pill p-1 [--surface-border:var(--control-border)] data-[disabled]:opacity-40 ${className}`}
     >
       {options.map((o) => (
         <Radio.Root
@@ -54,16 +54,16 @@ export function Segmented<T extends string>({
           value={o.value}
           data-force={force?.value === o.value ? force.state : undefined}
           {...itemProps}
-          className="relative flex h-9 cursor-pointer items-center rounded-pill px-4 text-sm text-slate outline-none transition-[color,transform] duration-150 select-none
+          className="relative flex h-9 cursor-pointer items-center rounded-pill px-4 text-sm whitespace-nowrap text-mute transition-[color,transform] duration-150 select-none
             hover:text-cream data-[force=hover]:text-cream
-            focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-cyan data-[force=focus]:outline-2 data-[force=focus]:outline-solid data-[force=focus]:outline-offset-2 data-[force=focus]:outline-cyan
+            data-[force=focus]:outline-2 data-[force=focus]:outline-solid data-[force=focus]:outline-offset-2 data-[force=focus]:outline-cyan
             active:scale-[.98] data-[force=pressed]:scale-[.98]
-            data-[checked]:text-cream data-[disabled]:cursor-not-allowed data-[disabled]:hover:text-slate"
+            data-[checked]:font-medium data-[checked]:text-cream data-[disabled]:cursor-not-allowed data-[disabled]:hover:text-mute"
         >
           {value === o.value && (
             <motion.span
               layoutId={layoutId}
-              className="absolute inset-0 rounded-pill border border-cyan-line bg-cyan-soft"
+              className="absolute inset-0 rounded-pill border border-cyan bg-cyan-soft"
               transition={{ type: "spring", stiffness: 500, damping: 40 }}
             />
           )}

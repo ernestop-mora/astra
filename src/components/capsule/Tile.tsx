@@ -11,7 +11,7 @@ export const KIND_ICON: Record<ItemKind, typeof Video> = {
   note: StickyNote,
 };
 
-/** Grid footprint by kind; the featured tile is always the large one. */
+/** Footprint in the flowing grid (small windows); the paged grid places tiles itself. */
 const SIZE: Record<ItemKind, string> = {
   video: "sm:col-span-2",
   photo: "sm:row-span-2",
@@ -23,6 +23,9 @@ interface TileProps {
   item: CapsuleItem;
   featured: boolean;
   onOpen: () => void;
+  /** Flowing grid: the tile takes its footprint from its kind. */
+  flow?: boolean;
+  style?: React.CSSProperties;
 }
 
 /**
@@ -30,7 +33,7 @@ interface TileProps {
  * notes, cream for the featured unseen message. Only the user's own photos and
  * the locally drawn first frame of their own videos are ever shown as pictures.
  */
-export function Tile({ item, featured, onOpen }: TileProps) {
+export function Tile({ item, featured, onOpen, flow = false, style }: TileProps) {
   const Icon = KIND_ICON[item.kind];
   const { url } = useItemUrl(item.demo ? null : item, item.kind === "photo" ? "file" : "thumb");
   const picture = url !== null && (item.kind === "photo" || item.kind === "video");
@@ -38,13 +41,17 @@ export function Tile({ item, featured, onOpen }: TileProps) {
   const tone = featured ? "light" : note ? "amber" : "dark";
 
   return (
-    <li className={featured ? "sm:col-span-3 sm:row-span-2" : SIZE[item.kind]}>
+    <li className={`min-h-0 ${!flow ? "" : featured ? "sm:col-span-3 sm:row-span-2" : SIZE[item.kind]}`} style={style}>
       <button
         type="button"
         onClick={onOpen}
         aria-label={`Open ${item.name}, ${item.kind} from ${item.sender}${item.seen ? "" : ", new"}`}
-        className={`group relative flex h-full min-h-[150px] w-full flex-col overflow-hidden rounded-panel p-5 text-left outline-none transition-transform duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-cyan active:scale-[.99] ${
-          tone === "light" ? "surface-light" : tone === "amber" ? "bg-amber text-navy" : "surface text-cream hover:border-cyan/40"
+        className={`group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-panel p-4 text-left transition-transform duration-150 active:scale-[.99] ${
+          tone === "light"
+            ? "surface-light focus-visible:outline-cyan"
+            : tone === "amber"
+              ? "bg-amber text-navy"
+              : "surface text-cream [--surface-border:var(--control-border)] hover:border-cyan"
         }`}
       >
         {picture && (
@@ -57,13 +64,18 @@ export function Tile({ item, featured, onOpen }: TileProps) {
 
         <span className="relative flex items-center justify-between">
           <span
-            className={`grid size-9 place-items-center rounded-full ${
+            className={`grid size-8 shrink-0 place-items-center rounded-full ${
               tone === "dark" ? "bg-navy/60 text-cyan" : "bg-navy/10 text-navy"
             }`}
           >
             <Icon size={18} strokeWidth={1.5} aria-hidden="true" />
           </span>
-          {!item.seen && <span aria-hidden="true" className="size-2.5 rounded-full bg-coral" />}
+          {!item.seen && (
+            <span className="flex items-center gap-1.5 text-xs font-medium">
+              <span aria-hidden="true" className="size-2.5 rounded-full bg-coral" />
+              New
+            </span>
+          )}
         </span>
 
         {item.kind === "video" && picture && (
@@ -73,14 +85,14 @@ export function Tile({ item, featured, onOpen }: TileProps) {
         )}
 
         {note && item.note && (
-          <span className={`relative mt-4 shrink-0 text-sm leading-snug ${featured ? "line-clamp-4 text-lg" : "truncate"}`}>{item.note}</span>
+          <span className={`relative mt-2 min-h-0 text-sm ${featured ? "line-clamp-3" : "line-clamp-1"}`}>{item.note}</span>
         )}
 
-        <span className="relative mt-auto pt-6">
-          <span className={`block font-medium leading-tight ${featured ? "text-3xl font-light" : "text-base"}`}>
+        <span className="relative mt-auto pt-2">
+          <span className={`block font-medium ${featured ? "text-xl" : "text-md"}`}>
             {item.name}
           </span>
-          <span className={`mt-1.5 flex flex-wrap items-center gap-x-2 text-xs ${tone === "dark" ? "text-cream/60" : "text-navy/70"}`}>
+          <span className={`flex flex-wrap items-center gap-x-2 text-xs ${tone === "dark" ? "text-mute" : "text-navy"}`}>
             <span>{item.sender}</span>
             {item.durationSec !== null && <span className="font-mono">{formatDuration(item.durationSec)}</span>}
             <span>{item.sentLabel}</span>

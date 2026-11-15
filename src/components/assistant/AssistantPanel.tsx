@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleHelp, Mic, Volume2, VolumeX, X, type LucideIcon } from "lucide-react";
+import { CircleHelp, Mic, MicOff, Volume2, VolumeX, X, type LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button, GlassPanel } from "@/components/ds";
 import { useAssistantStore, type AssistantState } from "@/store/useAssistantStore";
@@ -22,10 +22,8 @@ const HOLD_MS = 400;
 const FIGURE = /^(\d[\d.,:]*\d|\d)(\D*)$/;
 
 /** Denser than the base glass: the panel floats over busy content. */
-const PANEL_BG = "color-mix(in srgb, var(--navy) 90%, transparent)";
+const PANEL_BG = "color-mix(in srgb, var(--navy) 96%, transparent)";
 
-const FOCUS =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-cyan";
 
 function IconButton({
   icon: Icon,
@@ -36,7 +34,7 @@ function IconButton({
     <button
       type="button"
       aria-label={label}
-      className={`flex size-9 cursor-pointer items-center justify-center rounded-full text-slate transition-colors duration-150 hover:bg-cream/5 hover:text-cream ${FOCUS}`}
+      className="flex size-9 cursor-pointer items-center justify-center rounded-full text-mute transition-colors duration-150 hover:bg-cream/5 hover:text-cream"
       {...props}
     >
       <Icon size={18} strokeWidth={1.5} aria-hidden="true" />
@@ -98,10 +96,25 @@ export function AssistantPanel() {
       tabIndex={-1}
       data-assistant-panel=""
       style={{ background: PANEL_BG }}
-      className="fixed right-6 bottom-6 z-40 flex max-h-[calc(100dvh-11rem)] w-[380px] max-w-[calc(100vw-3rem)] flex-col overflow-y-auto p-4 outline-none"
+      // Tab stays inside the open panel, so focus is never on something it covers.
+      onKeyDown={(e) => {
+        if (e.key !== "Tab" || !panel.current) return;
+        const stops = [...panel.current.querySelectorAll<HTMLElement>("button:not(:disabled), input, a[href]")];
+        const first = stops[0];
+        const last = stops[stops.length - 1];
+        const at = document.activeElement;
+        if (e.shiftKey && (at === first || at === panel.current)) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && at === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }}
+      className="fixed right-6 bottom-6 z-40 flex max-h-[calc(100dvh-11rem)] w-[380px] max-w-[calc(100vw-3rem)] flex-col p-4 outline-none small:max-h-[calc(100dvh-3rem)] small:overflow-y-auto"
     >
       <div className="flex items-center gap-1">
-        <h2 className="flex-1 text-sm font-medium text-cream">Assistant</h2>
+        <h2 className="flex-1 text-md font-medium text-cream">Assistant</h2>
         <IconButton icon={CircleHelp} label="Help" aria-expanded={help} onClick={() => setHelp((h) => !h)} />
         <IconButton
           icon={muted ? VolumeX : Volume2}
@@ -114,7 +127,7 @@ export function AssistantPanel() {
 
       <div className="flex flex-col items-center">
         <AssistantFace state={state} mouth={mouth} size={120} />
-        <p role="status" className="mt-1 text-xs text-cream/70">
+        <p role="status" className="mt-1 text-xs text-mute">
           {STATE_TEXT[state]}
         </p>
       </div>
@@ -123,7 +136,7 @@ export function AssistantPanel() {
       <p
         aria-hidden="true"
         data-assistant-subtitle=""
-        className={`mt-2 line-clamp-3 min-h-[4.5rem] text-center text-base leading-6 text-cream transition-opacity duration-500 ${
+        className={`mt-2 line-clamp-3 min-h-[4.5rem] text-center text-md text-cream transition-opacity duration-500 ${
           subtitleVisible ? "opacity-100" : "opacity-0"
         }`}
       >
@@ -135,6 +148,7 @@ export function AssistantPanel() {
 
       {support.recognition ? (
         <Button
+          variant="primary"
           className="mt-3 w-full"
           aria-pressed={listening}
           onPointerDown={(e) => {
@@ -158,12 +172,12 @@ export function AssistantPanel() {
           {listening ? "Tap to send" : "Hold to talk"}
         </Button>
       ) : (
-        <p className="mt-3 text-xs text-cream/70">Voice input is not available in this browser.</p>
+        <p className="mt-3 text-xs text-mute">Voice input is not available in this browser.</p>
       )}
-      {voiceNotice && !help && <p className="mt-2 text-xs text-cream/70">{VOICE_NOTICE}</p>}
+      {voiceNotice && !help && <p className="mt-2 text-xs text-mute">{VOICE_NOTICE}</p>}
       {micDenied && (
-        <p role="alert" className="mt-2 flex items-center gap-2 text-xs text-cream">
-          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-amber" />
+        <p role="status" className="mt-2 flex items-center gap-2 text-xs text-cream">
+          <MicOff size={14} strokeWidth={2} aria-hidden="true" className="shrink-0 text-amber" />
           Microphone access is blocked. You can still type.
         </p>
       )}
@@ -182,29 +196,32 @@ export function AssistantPanel() {
           autoComplete="off"
           value={draft}
           onChange={(e) => setStore({ draft: e.target.value })}
-          className={`h-10 min-w-0 flex-1 rounded-field border border-rule bg-navy/40 px-3 text-sm text-cream placeholder:text-slate ${FOCUS}`}
+          className="h-10 min-w-0 flex-1 rounded-field border border-control bg-navy/40 px-3 text-sm text-cream placeholder:text-mute"
         />
         <Button type="submit" variant="quiet" disabled={draft.trim() === ""}>
           Ask
         </Button>
       </form>
 
-      <ul aria-label="Suggested questions" className="mt-3 flex flex-wrap gap-2">
-        {SUGGESTIONS.map((s) => (
-          <li key={s.key}>
-            <button
-              type="button"
-              onClick={() => ask(s.text)}
-              className={`h-8 cursor-pointer rounded-pill border border-rule px-3 text-xs text-cream transition-colors duration-150 hover:border-cyan-line hover:bg-cyan-soft ${FOCUS}`}
-            >
-              {s.text}
-            </button>
-          </li>
-        ))}
-      </ul>
+      {/* Help takes the place of the suggestions, so the panel never grows past the screen. */}
+      {!help && (
+        <ul aria-label="Suggested questions" className="mt-3 flex flex-wrap gap-2">
+          {SUGGESTIONS.map((s) => (
+            <li key={s.key}>
+              <button
+                type="button"
+                onClick={() => ask(s.text)}
+                className="min-h-8 cursor-pointer rounded-pill border border-control px-3 text-xs text-cream transition-colors duration-150 hover:border-cyan hover:bg-cyan-soft"
+              >
+                {s.text}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {help && (
-        <ul className="mt-4 flex flex-col gap-1.5 border-t border-rule pt-3 text-xs text-cream/70">
+        <ul className="mt-3 flex flex-col gap-1 border-t border-rule pt-3 text-sm text-mute">
           <li>{VOICE_NOTICE}</li>
           <li>Conversations are not saved.</li>
           <li>
